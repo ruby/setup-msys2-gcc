@@ -1,0 +1,17 @@
+{
+  "name": "setup-msys2-gcc",
+  "version": "1.0.0",
+  "description": "Save msys2 gcc packages",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint index.js",
+    "package": "ncc build index.js -o .github/actions/upload-binary"
+  },
+  "author": "MSP-Greg",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.4.0",
+    "@octokit/plugin-retry": "^3.0.9",
+    "@octokit/rest": "^18.6.4"
+  }
+}
