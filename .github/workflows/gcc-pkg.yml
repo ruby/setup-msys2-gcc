@@ -1,0 +1,33 @@
+name: MSYS2 GCC Package
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  main:
+    runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        gcc: [ ucrt64 ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: mingw
+
+      - name: Update gcc
+        timeout-minutes: 10
+        run:  ruby create_gcc_pkg.rb ${{ matrix.gcc }}
+
+      - name: upload asset
+        timeout-minutes: 5
+        uses: ./.github/actions/upload-binary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_tag: 'msys2-gcc-pkgs'
+          release_name: ${{ matrix.gcc }}

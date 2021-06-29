@@ -1,0 +1,14 @@
+name: 'Upload msys2 gcc 7z file'
+description: 'Upload msys2 gcc 7z file'
+author: 'MSP-Greg'
+inputs:
+  release_tag:
+    description: 'The repo release tag to store the 7z in'
+    default: ''
+  release_name:
+    description: 'The mingw type, one of mingw32, mingw64, or uncrt64'
+    default: ''
+
+runs:
+  using: 'node12'
+  main: 'index.js'
