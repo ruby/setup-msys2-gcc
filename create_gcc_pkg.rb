@@ -16,7 +16,7 @@ module CreateMingwGCC
 
     def install_gcc
       args = '--noconfirm --noprogressbar --needed'
-      pkgs = %w[dlfcn make pkgconf libyaml libmangle-git gcc].unshift('')
+      pkgs = %w[dlfcn make pkgconf libmangle-git libyaml tools-git gcc].unshift('')
         .join " #{@pkg_pre}"
       Dir.chdir("#{MSYS2_ROOT}/usr/bin") do
         cmd = "sed -i 's/^CheckSpace/#CheckSpace/g' C:/msys64/etc/pacman.conf"
