@@ -16,8 +16,10 @@ module CreateMingwGCC
 
     def install_gcc
       args = '--noconfirm --noprogressbar --needed'
-      pkgs = %w[dlfcn make pkgconf libmangle-git libyaml tools-git gcc].unshift('')
-        .join " #{@pkg_pre}"
+      # zlib required by gcc
+      base_gcc  = %w[dlfcn make pkgconf libmangle-git tools-git gcc]
+      base_ruby = %w[gmp libffi libyaml openssl ragel readline]
+      pkgs = (base_gcc + base_ruby).unshift('').join " #{@pkg_pre}"
       Dir.chdir("#{MSYS2_ROOT}/usr/bin") do
         cmd = "sed -i 's/^CheckSpace/#CheckSpace/g' C:/msys64/etc/pacman.conf"
         system cmd
@@ -66,6 +68,26 @@ module CreateMingwGCC
       Dir.chdir "#{TAR_DIR}/#{@pkg_name}/share/doc" do
         ary = Dir.glob "*"
         ary.each { |dir| FileUtils.remove_dir dir }
+      end
+
+      Dir.chdir "#{TAR_DIR}/#{@pkg_name}/share/info" do
+        ary = Dir.glob "*.gz"
+        ary.each { |file| FileUtils.remove_file file }
+      end
+
+      Dir.chdir "#{TAR_DIR}/#{LOCAL}" do
+        ary = Dir.glob "#{@pkg_pre}*/files"
+        ary.each do |fn|
+          File.open(fn, mode: 'r+b') { |f|
+            str = f.read
+            f.truncate 0
+            f.rewind
+            str.gsub!(/^#{@pkg_name}\/share\/doc\/\S+\s*/m , '')
+            str.gsub!(/^#{@pkg_name}\/share\/info\/\S+\s*/m, '')
+            str.gsub!(/^#{@pkg_name}\/share\/man\/\S+\s*/m , '')
+            f.write "#{str.strip}\n\n"
+          }
+        end
       end
 
       # create 7z file
