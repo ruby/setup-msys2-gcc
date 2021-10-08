@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 MSP-Greg
+// Copyright (c) 2020-2022 MSP-Greg
 
 'use strict';
 
@@ -34,7 +34,7 @@ const run = async () => {
 
     const octokit = new MyOctokit({
       auth: process.env.GITHUB_TOKEN,
-      userAgent: 'setup-msys2-gcc',
+      userAgent: `${owner}--${repo}`,
       timeZone: 'America/Chicago'
     })
 
@@ -93,10 +93,13 @@ const run = async () => {
 
     console.timeEnd('  Upload 7z')
 
+    // wait for file processing
+    await new Promise(r => setTimeout(r, 10000))
+
     console.time('    Replace')
 
     if (releaseIdOld) {
-      console.log(' rename old')
+      console.log(' rename current to old')
       await octokit.repos.updateReleaseAsset({
         owner: owner,
         repo: repo,
@@ -105,7 +108,7 @@ const run = async () => {
       })
     }
 
-    console.log(' rename new')
+    console.log(' rename new to current')
     await octokit.repos.updateReleaseAsset({
       owner: owner,
       repo: repo,
