@@ -118,6 +118,9 @@ const run = async () => {
 
     console.timeEnd('    Replace')
 
+    // wait for file processing
+    await new Promise(r => setTimeout(r, 5000))
+
     if (releaseIdOld) {
       console.log(' delete old')
       await octokit.repos.deleteReleaseAsset({
