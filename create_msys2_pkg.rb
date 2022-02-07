@@ -1,9 +1,18 @@
 # frozen_string_literal: true
 
+# Original code by MSP-Greg
+# This script creates a 7z file of the MSYS2 base tools (located in usr/bin)
+# for use with GitHub Actions.  Since these files are installed on the Actions
+# Windows runner's hard drive, smaller zip files speed up the installation.
+# Hence, many of the 'doc' related files in the 'share' folder are removed.
+
 require 'fileutils'
+require_relative 'common'
 
 module CreateMSYS2Tools
   class << self
+
+    include Common
 
     MSYS2_ROOT = 'C:/msys64'
     TEMP = ENV.fetch('RUNNER_TEMP') { ENV.fetch('RUNNER_WORKSPACE') { ENV['TEMP'] } }
@@ -12,7 +21,13 @@ module CreateMSYS2Tools
     SYNC = 'var/lib/pacman/sync'
     LOCAL = 'var/lib/pacman/local'
 
-    SEVEN = 'C:\Program Files\7-Zip\7z'
+    def update_msys2
+      pacman_syuu
+
+      pkgs = 'autoconf-wrapper autogen automake-wrapper bison diffutils libtool m4 make patch texinfo texinfo-tex compression'
+      exec_check "Install MSYS2 packages#{RST}\n#{YEL}#{pkgs}",
+        "#{PACMAN} -S --noconfirm --needed --noprogressbar #{pkgs}"
+    end
 
     def remove_non_msys2
       dirs = %w[clang32 clang64 clangarm64 mingw32 mingw64 ucrt64]
@@ -27,6 +42,7 @@ module CreateMSYS2Tools
       end
     end
 
+    # remove files from 7z that are identical to Windows image
     def remove_duplicate_files
       files = Dir.glob('**/*', base: MSYS2_ROOT).reject { |fn| fn.start_with? LOCAL }
 
@@ -41,7 +57,7 @@ module CreateMSYS2Tools
           end
         end
       end
-      puts "Removed #{removed_files} files"
+      STDOUT.syswrite "Removed #{removed_files} files\n"
     end
 
     # remove unneeded database files
@@ -54,16 +70,36 @@ module CreateMSYS2Tools
     end
 
     def run
-      remove_non_msys2
+      current_pkgs = %x[#{PACMAN} -Q].split("\n").reject { |l| l.start_with? 'mingw-w64-' }
 
+      update_msys2
+
+      updated_pkgs = %x[#{PACMAN} -Q].split("\n").reject { |l| l.start_with? 'mingw-w64-' }
+
+      time = Time.now.utc.strftime '%Y-%m-%d %H:%M:%S UTC'
+
+      log_array_2_column updated_pkgs, 48, "Installed MSYS2 Packages"
+
+#      if current_pkgs == updated_pkgs
+#        STDOUT.syswrite "\n** No update to MSYS2 tools needed **\n\n"
+#        exit 0
+#      else
+        STDOUT.syswrite "\n#{GRN}** Creating and Uploading MSYS update 7z **#{RST}\n\n"
+#      end
+
+      remove_non_msys2
       remove_duplicate_files
       clean_database 'msys'
 
       # create 7z file
+      STDOUT.syswrite "##[group]#{YEL}Create msys2 7z file#{RST}\n"
       tar_path = "#{Dir.pwd}\\msys2.7z".gsub '/', '\\'
       Dir.chdir MSYS2_ROOT do
-        system "\"#{SEVEN}\" a #{tar_path}"
+        exit 1 unless system "\"#{SEVEN}\" a #{tar_path}"
       end
+      STDOUT.syswrite "##[endgroup]\n"
+
+      upload_7z_update 'msys2', time
     end
   end
 end

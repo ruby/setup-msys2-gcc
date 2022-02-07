@@ -1,4 +1,4 @@
-name: MSYS2 GCC Package
+name: Windows Build Tools
 
 on:
   pull_request:
@@ -13,6 +13,8 @@ on:
 
 jobs:
   msys2:
+    name: >-
+      msys2 tools
     runs-on: windows-2022
     strategy:
       fail-fast: false
@@ -21,42 +23,30 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Copy msys2 files to temp dir
-        timeout-minutes: 10
-        run: |
+        run:  |
           $temp = $env:RUNNER_TEMP
           md $temp\msys64
           # copy current msys2 to temp folder, needed to determine what files to include
           # in zip file (only newer files)
           xcopy C:\msys64 $temp\msys64 /s /q
+        timeout-minutes: 10
 
       - name: Set up Ruby
-        timeout-minutes: 5
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: mingw
-
-      - name: Update msys2
-        timeout-minutes: 15
-        run: ./update_msys2.ps1
-
-      - name: Create MSYS2 tools 7z
-        timeout-minutes: 10
-        if: env.Create7z == 'yes'
-        run: ruby create_msys2_pkg.rb
-
-      - name: upload asset
         timeout-minutes: 5
-        if: env.Create7z == 'yes'
-        uses: ./.github/actions/upload-binary
+
+      - name: Update msys2 tools 7z and Upload
+        run:  ruby create_msys2_pkg.rb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release_tag: 'msys2-gcc-pkgs'
-          release_name: msys2
+        timeout-minutes: 10
 
-  main:
+  gcc:
+    name: >-
+      ${{ matrix.gcc }} gcc
     runs-on: windows-2022
-    needs: msys2
     strategy:
       fail-fast: false
       matrix:
@@ -68,21 +58,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up Ruby
-        timeout-minutes: 5
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-
-      - name: Update gcc
-        timeout-minutes: 10
-        run:  ruby create_gcc_pkg.rb ${{ matrix.gcc }}
-
-      - name: upload asset
-        if: env.Create7z == 'yes'
         timeout-minutes: 5
-        uses: ./.github/actions/upload-binary
+
+      - name: Update ${{ matrix.gcc }} gcc 7z and Upload
+        run:  ruby create_gcc_pkg.rb ${{ matrix.gcc }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          release_tag: 'msys2-gcc-pkgs'
-          release_name: ${{ matrix.gcc }}
+        timeout-minutes: 10

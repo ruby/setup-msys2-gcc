@@ -1,6 +1,6 @@
 # setup-msys2-gcc
 
- This repo creates three prepackaged 7z files for using with GitHub Actions Windows images.
+This repo creates three prepackaged MSYS2 7z files for use with GitHub Actions Windows images.
 The packages are updated four times a day.
 
  The packages are downloaded and extracted by code in [ruby/setup-ruby](https://github.com/ruby/setup-ruby).
@@ -17,4 +17,3 @@ The packages are updated four times a day.
 
  **`ucrt64.7z`** This contains the ucrt64 gcc chain and any packages needed to build
  Ruby.  Normal Ruby Windows releases from version 3.1 and later use these tools.
- 
