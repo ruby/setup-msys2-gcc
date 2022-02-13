@@ -120,12 +120,12 @@ module CreateMingwGCC
       log_array_2_column updated_pkgs.map { |el| el.sub PKG_PRE, ''}, 48,
         "Installed #{PKG_PRE[0..-2]} Packages"
 
-#      if current_pkgs == updated_pkgs
-#        STDOUT.syswrite "\n** No update to #{PKG_NAME} gcc tools needed **\n\n"
-#        exit 0
-#      else
+      if current_pkgs == updated_pkgs
+        STDOUT.syswrite "\n** No update to #{PKG_NAME} gcc tools needed **\n\n"
+        exit 0
+      else
         STDOUT.syswrite "\n#{GRN}** Creating and Uploading #{PKG_NAME} gcc tools 7z **#{RST}\n\n"
-#      end
+      end
 
       copy_to_temp
 
