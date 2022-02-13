@@ -63,22 +63,23 @@ module Common
     end
   end
 
-  def set_v3_common_headers(req)
+  def set_v3_common_headers(req, connection: nil)
     req['User-Agent'] = GH_NAME
     req['Authorization'] = "token #{TOKEN}"
     req['Accept'] = 'application/vnd.github.v3+json'
+    req['Connection'] = 'close' if connection == 'close'
   end
 
-  def gh_api_v3_get(http, user_repo, suffix)
+  def gh_api_v3_get(http, user_repo, suffix, connection: nil)
     req = Net::HTTP::Get.new "/repos/#{user_repo}/#{suffix}"
-    set_v3_common_headers req
+    set_v3_common_headers req, connection: connection
     resp = http.request req
     resp.code == '200' ? JSON.parse(resp.body) : resp
   end
 
-  def gh_api_v3_patch(http, user_repo, suffix, hsh)
+  def gh_api_v3_patch(http, user_repo, suffix, hsh, connection: nil)
     req = Net::HTTP::Patch.new "/repos/#{user_repo}/#{suffix}"
-    set_v3_common_headers req
+    set_v3_common_headers req, connection: connection
     req['Content-Type'] = 'application/json; charset=utf-8'
     req.body = JSON.generate hsh
 
@@ -86,21 +87,21 @@ module Common
     resp.code == '200' ? JSON.parse(resp.body) : resp
   end
 
-  def gh_api_v3_delete(http, user_repo, suffix)
+  def gh_api_v3_delete(http, user_repo, suffix, connection: nil)
     req = Net::HTTP::Delete.new "/repos/#{user_repo}/#{suffix}"
-    set_v3_common_headers req
+    set_v3_common_headers req, connection: connection
     resp = http.request req
     resp.code == '204' ? nil : resp
   end
 
-  def gh_api_v3_upload(http, user_repo, suffix, file)
+  def gh_api_v3_upload(http, user_repo, suffix, file, connection: nil)
     unless File.exist?(file) && File.readable?(file)
       STDOUT.syswrite "#{RED}File #{file} doesn't exist or isn't readable#{RST}\n"
       exit 1
     end
 
     req = Net::HTTP::Post.new "/repos/#{user_repo}/#{suffix}"
-    set_v3_common_headers req
+    set_v3_common_headers req, connection: connection
     req['Content-Type'] = 'application/x-7z-compressed'
     req['Content-Length'] = File.size file
     io = File.open file, mode: 'rb'
@@ -137,7 +138,8 @@ module Common
 
     # get release info
     gh_api_http do |http|
-      resp_obj = gh_api_v3_get http, USER_REPO, "releases/tags/#{TAG}"
+      resp_obj = gh_api_v3_get http, USER_REPO, "releases/tags/#{TAG}",
+        connection: 'close'
 
       break unless response_ok resp_obj, 'GET - release info response', actions_group: true
 
@@ -173,7 +175,8 @@ module Common
       time_start = Process.clock_gettime Process::CLOCK_MONOTONIC
 
       resp_obj = gh_api_v3_upload http, USER_REPO,
-        "releases/#{release_id}/assets?label=&name=#{pkg_name}_new.7z", "#{pkg_name}.7z"
+        "releases/#{release_id}/assets?label=&name=#{pkg_name}_new.7z", "#{pkg_name}.7z",
+        connection: 'close'
 
       break unless response_ok resp_obj, 'POST - upload new 7z package', actions_group: true
 
@@ -214,7 +217,8 @@ module Common
 
       # update package info in release notes
       h = {'body' => update_release_notes(body, pkg_name, time)}
-      resp_obj = gh_api_v3_patch http, USER_REPO, "releases/#{release_id}", h
+      resp_obj = gh_api_v3_patch http, USER_REPO, "releases/#{release_id}", h,
+        connection: 'close'
       break unless response_ok resp_obj, 'PATCH - update release notes with date/build number', actions_group: true
     end
 
