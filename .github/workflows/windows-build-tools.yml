@@ -29,13 +29,13 @@ jobs:
           # copy current msys2 to temp folder, needed to determine what files to include
           # in zip file (only newer files)
           xcopy C:\msys64 $temp\msys64 /s /q
-        timeout-minutes: 10
+        timeout-minutes: 15
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: mingw
-        timeout-minutes: 5
+        timeout-minutes: 7
 
       - name: Update msys2 tools 7z and Upload
         run:  ruby create_msys2_pkg.rb
@@ -61,7 +61,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-        timeout-minutes: 5
+        timeout-minutes: 7
 
       - name: Update ${{ matrix.gcc }} gcc 7z and Upload
         run:  ruby create_gcc_pkg.rb ${{ matrix.gcc }}
