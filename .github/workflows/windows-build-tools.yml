@@ -1,4 +1,4 @@
-name: Windows Build Tools
+name: Windows MSYS2 Build Tools
 
 on:
   pull_request:

@@ -1,19 +1,44 @@
 # setup-msys2-gcc
 
-This repo creates three prepackaged MSYS2 7z files for use with GitHub Actions Windows images.
-The packages are updated four times a day.
+### Purpose
 
- The packages are downloaded and extracted by code in [ruby/setup-ruby](https://github.com/ruby/setup-ruby).
+This repo packages the build tools needed to compile c and c++ source when using Windows
+Rubies with GitHub Actions.
 
- The three packages are:
+### General
 
- **`msys2.7z`** The base msys2 installation on Actions Windows images contains a minimal
- set of bash tools, and no shared build tools.  Code updates the packages, and saves only
- updated files to the 7z.  All Ruby Windows releases from version 2.5 and later use these
- tools.
+Publicly available Windows Rubies are built with the [MSYS2](https://github.com/msys2) system,
+which provides a bash shell, compilers and tools, and various packages.  Windows Rubies 2.4 thru 
+3.0 use the MSYS2 tools refered to as 'mingw64', which compile using legacy Windows libraries.
+Windows Rubies 3.1 and later use 'ucrt64', which use newer Windows libraries.
 
- **`mingw64.7z`** This contains the mingw64 gcc chain and any packages needed to build
- Ruby.  Normal Ruby Windows releases from version 2.4 thru 3.0 use these tools.
+Below summarizes the default MSYS2 installations on Actions Windows images:
 
- **`ucrt64.7z`** This contains the ucrt64 gcc chain and any packages needed to build
- Ruby.  Normal Ruby Windows releases from version 3.1 and later use these tools.
+| Actions<br/>Image  |  MSYS<br/>Base | MSYS<br/>Build Tools | mingw64<br/>gcc & tools | mingw64<br/>packages | ucrt64<br/>gcc & tools | ucrt64<br/>packages |
+|--------------------|:--------------:|:--------------------:|:-----------------------:|:--------------------:|:----------------------:|:-------------------:|
+| **2022 and later** | Yes | No  | No  | No  | No  | No |
+| **2016, 2019**     | Yes | Yes | Yes | Some | No  | No  |
+
+### Notes
+
+Four package files are stored in a GitHub release, and are used by
+[ruby/setup-ruby](https://github.com/ruby/setup-ruby).  They are:
+
+* **`msys2.7z`** The base msys2 installation on Actions Windows images contains a minimal
+set of bash tools, and no shared build tools.  Code updates the MSYS2 files, and saves only
+updated files to the 7z.  All Ruby Windows releases from version 2.4 and later use these
+tools.
+
+* **`mingw64.7z`** This contains the mingw64 gcc chain and any packages needed to build
+Ruby.  Normal Ruby Windows releases from version 2.4 thru 3.0 use these tools.
+
+* **`ucrt64.7z`** This contains the ucrt64 gcc chain and any packages needed to build
+Ruby.  Normal Ruby Windows releases from version 3.1 and later use these tools.
+
+* **`mswin.7z`** This contains files needed to compile Windows Ruby mswin builds. It contains
+libffi, libyaml, openssl, readline, and zlib, built with the Microsoft vcpkg system.
+
+
+The code installs the packages with [ruby/setup-ruby](https://github.com/ruby/setup-ruby),
+then updates the MSYS2 and vcpkg packages.  If any packages have been updated, it creates
+a new 7z file and updates the package in the release.
