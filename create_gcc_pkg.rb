@@ -110,6 +110,9 @@ module CreateMingwGCC
     def run
       current_pkgs = %x[#{PACMAN} -Q].split("\n").select { |l| l.start_with? PKG_PRE }
 
+      exec_check "Removing #{PKG_PRE}dlfcn",
+        "#{PACMAN} -R --noconfirm --noprogressbar #{PKG_PRE}dlfcn"
+
       install_gcc
 
       time = Time.now.utc.strftime '%Y-%m-%d %H:%M:%S UTC'
