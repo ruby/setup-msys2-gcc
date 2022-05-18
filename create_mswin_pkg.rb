@@ -23,6 +23,37 @@ module CreateMswin
 
     OPENSSL_PKG = 'packages/openssl_x64-windows'
 
+    def copy_ssl_files
+      # Locations for vcpkg OpenSSL build
+      # X509::DEFAULT_CERT_FILE      C:\vcpkg\packages\openssl_x64-windows/cert.pem
+      # X509::DEFAULT_CERT_DIR       C:\vcpkg\packages\openssl_x64-windows/certs
+      # Config::DEFAULT_CONFIG_FILE  C:\vcpkg\packages\openssl_x64-windows/openssl.cnf
+
+      vcpkg_u = VCPKG.gsub "\\", '/'
+
+      # make certs dir
+      export_ssl_path = "#{EXPORT_DIR}/#{PKG_NAME}/#{OPENSSL_PKG}"
+      FileUtils.mkdir_p "#{export_ssl_path}/certs"
+
+      # updating OpenSSL package may overwrite cert.pem
+      cert_path = "#{RbConfig::TOPDIR}/ssl/cert.pem"
+
+      if File.readable? cert_path
+        vcpkg_ssl_path = "#{vcpkg_u}/#{OPENSSL_PKG}"
+        unless Dir.exist? vcpkg_ssl_path
+          FileUtils.mkdir_p vcpkg_ssl_path
+        end
+        IO.copy_stream cert_path, "#{vcpkg_ssl_path}/cert.pem"
+        IO.copy_stream cert_path, "#{export_ssl_path}/cert.pem"
+      end
+
+      # copy openssl.cnf file
+      conf_path = "#{vcpkg_u}/installed/x64-windows/tools/openssl/openssl.cnf"
+      if File.readable? conf_path
+        IO.copy_stream conf_path, "#{export_ssl_path}/openssl.cnf"
+      end
+    end
+
     def generate_package_files
       ENV['VCPKG_ROOT'] = VCPKG
 
@@ -45,21 +76,7 @@ module CreateMswin
           "./vcpkg export --triplet=x64-windows #{PACKAGES} --raw --output=#{PKG_NAME} --output-dir=#{EXPORT_DIR}"
       end
 
-      # Locations for vcpkg OpenSSL build
-      # X509::DEFAULT_CERT_FILE      C:\vcpkg\packages\openssl_x64-windows/cert.pem
-      # X509::DEFAULT_CERT_DIR       C:\vcpkg\packages\openssl_x64-windows/certs
-      # Config::DEFAULT_CONFIG_FILE  C:\vcpkg\packages\openssl_x64-windows/openssl.cnf
-
-      # make certs dir and copy openssl.cnf file
-      ssl_path = "#{EXPORT_DIR}/#{PKG_NAME}/#{OPENSSL_PKG}"
-      FileUtils.mkdir_p "#{ssl_path}/certs"
-
       vcpkg_u = VCPKG.gsub "\\", '/'
-
-      cnf_path = "#{vcpkg_u}/installed/x64-windows/tools/openssl/openssl.cnf"
-      if File.readable? cnf_path
-        IO.copy_stream cnf_path, "#{ssl_path}/openssl.cnf"
-      end
 
       # vcpkg/installed/status contains a list of installed packages
       status_path = 'installed/vcpkg/status'
@@ -68,6 +85,8 @@ module CreateMswin
 
     def run
       generate_package_files
+      
+      copy_ssl_files
 
       # create 7z archive file
       tar_path = "#{__dir__}\\#{PKG_NAME}.7z".gsub '/', '\\'
