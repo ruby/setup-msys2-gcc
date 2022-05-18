@@ -23,25 +23,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: mswin
+        timeout-minutes: 5
+
       - name: update vcpkg installation
         run:  |
           $env:VCPKG_ROOT = $env:VCPKG_INSTALLATION_ROOT
           cd $env:VCPKG_INSTALLATION_ROOT
           git pull -q
           ./bootstrap-vcpkg.bat
-          $uri = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/download/msys2-gcc-pkgs/mswin.7z"
-          curl -L $uri -o $env:RUNNER_TEMP/mswin_temp.7z
-          cd $env:VCPKG_INSTALLATION_ROOT
-          &"C:\Program Files\7-Zip\7z" x $env:RUNNER_TEMP/mswin_temp.7z -aoa
           echo "`n———————————— ./vcpkg list ————————————"
           ./vcpkg list
         timeout-minutes: 15
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: mswin
-        timeout-minutes: 5
 
       - name: Update mswin tools 7z and Upload
         run:  ruby create_mswin_pkg.rb
