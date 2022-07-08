@@ -30,6 +30,7 @@ module Common
   TAG = 'msys2-gcc-pkgs' # GitHub release tag
   MSYS2_ROOT = 'C:/msys64'
   PACMAN     = 'C:/msys64/usr/bin/pacman.exe'
+  BASH       = 'C:/msys64/usr/bin/bash.exe'
 
   def gh_api_graphql(http, query)
     body = {}
@@ -241,6 +242,35 @@ module Common
     }
   end
 
+  def gpg_conf_key_server(old_uri, new_uri)
+    fn = "#{MSYS2_ROOT}/etc/pacman.d/gnupg/gpg.conf"
+    str = File.binread fn
+    if str.include? old_uri
+      str.sub! old_uri, new_uri
+      File.binwrite fn, str
+      STDOUT.syswrite "\ngpg.conf - changed '#{old_uri}' to '#{new_uri}'"
+    end
+  end
+
+  def refresh_keys
+    STDOUT.syswrite "\n#{YEL}#{LINE} Refresh keys#{RST}\n"
+    gpg_conf_key_server 'pool.sks-keyservers.net', 'keyserver.ubuntu.com'
+
+    str = ''
+    cmd = "#{BASH} -c \"pacman-key --refresh-keys\""
+
+    IO.popen(cmd, err: [:child, :out]) { |io| str = io.read }
+
+    system 'taskkill /f /fi "MODULES eq msys-2.0.dll"'
+
+    if str.match?(/new signatures:|signatures cleaned:/)
+      STDOUT.syswrite str
+      true
+    else
+      nil
+    end
+  end
+
   def pacman_syuu
     usr_bin = "#{MSYS2_ROOT}/usr/bin"
 
@@ -253,6 +283,8 @@ module Common
     exec_check 'Updating all installed packages (2nd pass)', "#{PACMAN} -Syuu  --noconfirm"
 
     system 'taskkill /f /fi "MODULES eq msys-2.0.dll"'
+
+    refresh_keys
   end
 
   # logs message and runs cmd, checking for error

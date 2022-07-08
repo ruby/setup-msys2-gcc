@@ -22,11 +22,12 @@ module CreateMSYS2Tools
     LOCAL = 'var/lib/pacman/local'
 
     def update_msys2
-      pacman_syuu
+      updated_keys = pacman_syuu
 
       pkgs = 'autoconf-wrapper autogen automake-wrapper bison diffutils libtool m4 make patch re2c texinfo texinfo-tex compression'
       exec_check "Install MSYS2 packages#{RST}\n#{YEL}#{pkgs}",
         "#{PACMAN} -S --noconfirm --needed --noprogressbar #{pkgs}"
+      updated_keys
     end
 
     def remove_non_msys2
@@ -72,7 +73,7 @@ module CreateMSYS2Tools
     def run
       current_pkgs = %x[#{PACMAN} -Q].split("\n").reject { |l| l.start_with? 'mingw-w64-' }
 
-      update_msys2
+      updated_keys = update_msys2
 
       updated_pkgs = %x[#{PACMAN} -Q].split("\n").reject { |l| l.start_with? 'mingw-w64-' }
 
@@ -80,7 +81,9 @@ module CreateMSYS2Tools
 
       log_array_2_column updated_pkgs, 48, "Installed MSYS2 Packages"
 
-      if current_pkgs == updated_pkgs
+      gpg_files = Dir["#{MSYS2_ROOT}/etc/pacman.d/gnupg/*"].count { |fn| File.file? fn }
+
+      if current_pkgs == updated_pkgs && !updated_keys
         STDOUT.syswrite "\n** No update to MSYS2 tools needed **\n\n"
         exit 0
       else
