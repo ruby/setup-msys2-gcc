@@ -70,7 +70,7 @@ module CreateMswin
           "./vcpkg upgrade #{PACKAGES} #{PKG_DEPENDS} --triplet=x64-windows --no-dry-run"
 
         exec_check "Removing outdated packages",
-          "./vcpkg remove --outdated"
+          "./vcpkg remove --outdated --recurse"
 
         exec_check "Exporting package files from vcpkg",
           "./vcpkg export --triplet=x64-windows #{PACKAGES} --raw --output=#{PKG_NAME} --output-dir=#{EXPORT_DIR}"
