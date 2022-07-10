@@ -18,8 +18,9 @@ module CreateMSYS2Tools
     TEMP = ENV.fetch('RUNNER_TEMP') { ENV.fetch('RUNNER_WORKSPACE') { ENV['TEMP'] } }
     ORIG_MSYS2 = "#{TEMP}/msys64".gsub '\\', '/'
 
-    SYNC = 'var/lib/pacman/sync'
+    SYNC  = 'var/lib/pacman/sync'
     LOCAL = 'var/lib/pacman/local'
+    CACHE = 'var/cache/pacman/pkg'
 
     def update_msys2
       updated_keys = pacman_syuu
@@ -70,6 +71,18 @@ module CreateMSYS2Tools
       end
     end
 
+    # remove downloaded packages and their '.sig' files
+    def clean_packages
+      dir = "#{MSYS2_ROOT}/#{CACHE}"
+      files = Dir.glob('*.*', base: dir)
+      Dir.chdir(dir) do
+        files.each do |fn|
+          next unless File.file? fn
+          File.delete fn
+        end
+      end
+    end
+
     def run
       current_pkgs = %x[#{PACMAN} -Q].split("\n").reject { |l| l.start_with? 'mingw-w64-' }
 
@@ -93,6 +106,7 @@ module CreateMSYS2Tools
       remove_non_msys2
       remove_duplicate_files
       clean_database 'msys'
+      clean_packages
 
       # create 7z file
       STDOUT.syswrite "##[group]#{YEL}Create msys2 7z file#{RST}\n"

@@ -67,7 +67,7 @@ module Common
   def set_v3_common_headers(req, connection: nil)
     req['User-Agent'] = GH_NAME
     req['Authorization'] = "token #{TOKEN}"
-    req['Accept'] = 'application/vnd.github.v3+json'
+    req['Accept'] = 'application/vnd.github+json'  # old 'application/vnd.github.v3+json'
     req['Connection'] = 'close' if connection == 'close'
   end
 
