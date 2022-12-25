@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# 25-Dec-2022 Actions cron jobs stop if repo has no commits for 60 days.
+
 require 'json'
 require 'net/http'
 require 'uri'
