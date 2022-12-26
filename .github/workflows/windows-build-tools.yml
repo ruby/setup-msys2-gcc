@@ -1,9 +1,6 @@
 name: Windows MSYS2 Build Tools
 
 on:
-  pull_request:
-    branches:
-      - '*'
   push:
     branches:
       - '*'
@@ -51,8 +48,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { gcc: mingw64, ruby: mingw }
-          - { gcc: ucrt64 , ruby: ucrt  }
+          - { gcc: mingw64    , ruby: mingw }
+          - { gcc: ucrt64     , ruby: ucrt  }
+          - { gcc: ucrt64-3.0 , ruby: head  }
     steps:
       - name: Checkout
         uses: actions/checkout@v3

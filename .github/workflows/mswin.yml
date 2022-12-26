@@ -1,9 +1,6 @@
 name: Windows MSWin Build Tools
 
 on:
-  pull_request:
-    branches:
-      - '*'
   push:
     branches:
       - '*'
