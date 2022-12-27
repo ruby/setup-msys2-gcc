@@ -128,6 +128,49 @@ module Common
     end
   end
 
+  def download(uri_s, file)
+    retry_max = 3
+    retries = 0
+    uri = URI uri_s
+    redirect = nil
+    begin
+      Net::HTTP.start(uri.host, uri.port, :use_ssl => true) do |http|
+        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        req = Net::HTTP::Get.new uri.request_uri
+        http.request req do |resp|
+          req['Connection'] = 'close'
+          case resp
+          when Net::HTTPSuccess then
+            File.open file, 'wb' do |io|
+              resp.read_body do |chunk|
+                io.write chunk
+              end
+            end
+          when Net::HTTPRedirection then
+            redirect = resp['location']
+            warn "redirected to #{URI(redirect).host}"
+          else
+            puts "Unknown issue connecting to:\n#{uri}\nCode: #{resp.code}  Class: #{resp.class}"
+            resp.value
+          end
+        end
+      end
+    rescue Errno::ECONNRESET => e
+      if retries > retry_max
+        raise e
+      else
+        puts "Retry"
+        retries += 1
+        sleep 2
+        retry
+      end
+    end
+    download(redirect, file) if redirect
+  rescue => e
+    STDOUT.syswrite "\nCannot connect to:\n#{uri.host}\n#{uri.request_uri}\n#{File.basename file}\n\n"
+    raise e
+  end
+
   def upload_7z_update(pkg_name, time)
     resp_obj   = nil
     body       = nil
@@ -157,11 +200,6 @@ module Common
     end
 
     exit 1 if resp_obj.is_a? Net::HTTPResponse
-
-    unless current_asset_id
-      STDOUT.syswrite "#{END_GROUP}#{RED}current asset #{pkg_name}.7z not found#{RST}\n"
-      exit 1
-    end
 
     if old_asset_exists
       STDOUT.syswrite "#{END_GROUP}#{RED}old asset #{pkg_name}_old.7z exists#{RST}\n"
@@ -202,8 +240,10 @@ module Common
     gh_api_http do |http|
       time_start = Process.clock_gettime Process::CLOCK_MONOTONIC
 
-      resp_obj = gh_api_v3_patch http, USER_REPO, "releases/assets/#{current_asset_id}", {'name' => "#{pkg_name}_old.7z"}
-      break unless response_ok resp_obj, 'PATCH - rename current asset to old', actions_group: true
+      if current_asset_id
+        resp_obj = gh_api_v3_patch http, USER_REPO, "releases/assets/#{current_asset_id}", {'name' => "#{pkg_name}_old.7z"}
+        break unless response_ok resp_obj, 'PATCH - rename current asset to old', actions_group: true
+      end
 
       resp_obj = gh_api_v3_patch http, USER_REPO, "releases/assets/#{updated_asset_id}", {'name' => "#{pkg_name}.7z"}
       break unless response_ok resp_obj, 'PATCH - rename updated asset to current', actions_group: true
@@ -211,8 +251,10 @@ module Common
       ttl_time = format '%5.2f', (Process.clock_gettime(Process::CLOCK_MONOTONIC) - time_start).round(2)
       STDOUT.syswrite "Rename time: #{ttl_time} secs\n"
 
-      resp_obj = gh_api_v3_delete http, USER_REPO, "releases/assets/#{current_asset_id}"
-      break unless response_ok resp_obj, 'DELETE - remove old asset', actions_group: true
+      if current_asset_id
+        resp_obj = gh_api_v3_delete http, USER_REPO, "releases/assets/#{current_asset_id}"
+        break unless response_ok resp_obj, 'DELETE - remove old asset', actions_group: true
+      end
 
       resp_obj = gh_api_v3_get http, USER_REPO, "releases/#{release_id}"
       break unless response_ok resp_obj, 'GET - release notes response', actions_group: true
