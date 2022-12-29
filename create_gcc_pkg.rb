@@ -45,7 +45,7 @@ module CreateMingwGCC
     def openssl_upgrade
       add_ri2_key
 
-      pkg_name = "openssl-3.0.5-1-any.pkg.tar.zst"
+      pkg_name = "openssl-3.0.7-1-any.pkg.tar.zst"
       pkg = "https://github.com/oneclick/rubyinstaller2-packages/releases/download/ci.ri2/#{PKG_PRE}#{pkg_name}"
       pkg_sig = "#{pkg}.sig"
       old_dlls = %w[libcrypto-1_1-x64.dll libssl-1_1-x64.dll]
