@@ -315,16 +315,19 @@ module Common
     end
   end
 
-  def pacman_syuu
+  def pacman_syuu(ignore = nil)
+    
     usr_bin = "#{MSYS2_ROOT}/usr/bin"
 
     exit 1 unless system "#{usr_bin}/sed -i 's/^CheckSpace/#CheckSpace/g' C:/msys64/etc/pacman.conf"
 
-    exec_check 'Updating all installed packages', "#{PACMAN} -Syuu  --noconfirm"
+    ignore = ignore ? "--ignore #{ignore}" : nil
+
+    exec_check 'Updating all installed packages', "#{PACMAN} -Syuu  --noconfirm #{ignore}"
 
     system 'taskkill /f /fi "MODULES eq msys-2.0.dll"'
 
-    exec_check 'Updating all installed packages (2nd pass)', "#{PACMAN} -Syuu  --noconfirm"
+    exec_check 'Updating all installed packages (2nd pass)', "#{PACMAN} -Syuu  --noconfirm #{ignore}"
 
     system 'taskkill /f /fi "MODULES eq msys-2.0.dll"'
 

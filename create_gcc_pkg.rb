@@ -61,19 +61,30 @@ module CreateMingwGCC
       exec_check "Install OpenSSL Upgrade", "pacman.exe -Udd --noconfirm --noprogressbar #{PKG_PRE}#{pkg_name}"
 
       # copy previous dlls back into MSYS2 folder
-      old_dlls.each { |fn| FileUtils.cp fn , "#{dll_root}/#{fn}" }
+      old_dlls.each do |fn|
+        unless File.exist? "#{dll_root}/#{fn}"
+          FileUtils.cp fn , "#{dll_root}/#{fn}"
+        end
+      end
     end
 
     def install_gcc
+      
       args = '--noconfirm --noprogressbar --needed'
       # zlib required by gcc, gdbm for older Rubies
       base_gcc  = %w[make pkgconf libmangle-git tools-git gcc]
-      base_ruby = %w[gdbm gmp libffi libyaml openssl ragel readline]
+      base_ruby = PKG_NAME.end_with?('-3.0') ?
+        %w[gdbm gmp libffi libyaml ragel readline] :
+        %w[gdbm gmp libffi libyaml openssl ragel readline]
 
       pkgs = (base_gcc + base_ruby).unshift('').join " #{PKG_PRE}"
 
       # may not be needed, but...
-      pacman_syuu
+      if PKG_NAME.end_with?('-3.0')
+        pacman_syuu "mingw-w64-ucrt-x86_64-openssl"
+      else
+        pacman_syuu
+      end
 
       exec_check "Updating the following #{PKG_PRE[0..-2]} packages:#{RST}\n" \
         "#{YEL}#{(base_gcc + base_ruby).join ' '}",
