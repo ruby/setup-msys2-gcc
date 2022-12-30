@@ -50,7 +50,7 @@ jobs:
         include:
           - { gcc: mingw64    , ruby: mingw }
           - { gcc: ucrt64     , ruby: ucrt  }
-          - { gcc: ucrt64-3.0 , ruby: head  }
+          - { gcc: ucrt64-3.0 , ruby: 3.2   }
     steps:
       - name: Checkout
         uses: actions/checkout@v3
