@@ -49,6 +49,7 @@ jobs:
       matrix:
         include:
           - { gcc: mingw64    , ruby: mingw }
+          - { gcc: mingw64-3.0, ruby: mingw }
           - { gcc: ucrt64     , ruby: ucrt  }
           - { gcc: ucrt64-3.0 , ruby: 3.2   }
     steps:

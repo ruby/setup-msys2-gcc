@@ -59,7 +59,7 @@ module CreateMswin
 
       Dir.chdir VCPKG do |d|
         update_info = %x(./vcpkg update)
-        if update_info.include? 'No packages need updating'
+        if update_info.include?('No packages need updating') && !ENV.key?('FORCE_UPDATE')
           STDOUT.syswrite "\n#{GRN}No packages need updating#{RST}\n\n"
           exit 0
         else
