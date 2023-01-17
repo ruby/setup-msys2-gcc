@@ -12,6 +12,8 @@ jobs:
   msys2:
     name: >-
       msys2 tools
+    # env:
+    #  FORCE_UPDATE: true
     runs-on: windows-2022
     strategy:
       fail-fast: false
@@ -43,6 +45,8 @@ jobs:
   gcc:
     name: >-
       ${{ matrix.gcc }} gcc
+    env:
+      FORCE_UPDATE: true
     runs-on: windows-2022
     strategy:
       fail-fast: false
