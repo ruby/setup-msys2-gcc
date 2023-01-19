@@ -33,7 +33,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: mingw
+          ruby-version: ucrt
         timeout-minutes: 7
 
       - name: Update msys2 tools 7z and Upload
@@ -52,10 +52,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { gcc: mingw64    , ruby: mingw }
+          - { gcc: mingw64    , ruby: '3.0' }
           - { gcc: mingw64-3.0, ruby: mingw }
-          - { gcc: ucrt64     , ruby: ucrt  }
-          - { gcc: ucrt64-3.0 , ruby: 3.2   }
+          - { gcc: ucrt64     , ruby: 3.1   }
+          - { gcc: ucrt64-3.0 , ruby: ucrt  }
     steps:
       - name: Checkout
         uses: actions/checkout@v3
