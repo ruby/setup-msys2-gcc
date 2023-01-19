@@ -96,7 +96,7 @@ module CreateMSYS2Tools
 
       gpg_files = Dir["#{MSYS2_ROOT}/etc/pacman.d/gnupg/*"].count { |fn| File.file? fn }
 
-      if current_pkgs == updated_pkgs && !updated_keys
+      if current_pkgs == updated_pkgs && !updated_keys && !ENV.key?('FORCE_UPDATE')
         STDOUT.syswrite "\n** No update to MSYS2 tools needed **\n\n"
         exit 0
       else

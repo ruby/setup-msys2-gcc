@@ -21,7 +21,7 @@ Below summarizes the default MSYS2 installations on Actions Windows images:
 
 ### Notes
 
-Four package files are stored in a GitHub release, and are used by
+Six package files are stored in a GitHub release, and are used by
 [ruby/setup-ruby](https://github.com/ruby/setup-ruby).  They are:
 
 * **`msys2.7z`** The base msys2 installation on Actions Windows images contains a minimal
@@ -30,14 +30,23 @@ updated files to the 7z.  All Ruby Windows releases from version 2.4 and later u
 tools.
 
 * **`mingw64.7z`** This contains the mingw64 gcc chain and any packages needed to build
-Ruby.  Normal Ruby Windows releases from version 2.4 thru 3.0 use these tools.
+Ruby.  This has OpenSSL 1.1.1 installed, as of 19-Jan-2023, 1.1.1.s.  Normal Ruby Windows
+releases from version 2.4 thru 3.0 use these tools.
+
+* **`mingw64-3.0.7z`** This contains the mingw64 gcc chain and any packages needed to build
+Ruby.  The MSYS2 OpenSSL 3.0.z package is installed.  The mingw Ruby master build is the
+only build that uses this.
 
 * **`ucrt64.7z`** This contains the ucrt64 gcc chain and any packages needed to build
-Ruby.  Normal Ruby Windows releases from version 3.1 and later use these tools.
+Ruby.  This has OpenSSL 1.1.1 installed, as of 19-Jan-2023, 1.1.1.s.  Ruby version 3.1 is
+the only release that uses this.
+
+* **`ucrt64-3.0.7z`** This contains the ucrt64 gcc chain and any packages needed to build
+Ruby. The MSYS2 OpenSSL 3.0.z package is installed.  Ruby 3.2, head, & ucrt builds use this.
 
 * **`mswin.7z`** This contains files needed to compile Windows Ruby mswin builds. It contains
-libffi, libyaml, openssl, readline, and zlib, built with the Microsoft vcpkg system.
-
+libffi, libyaml, openssl, readline, and zlib, built with the Microsoft vcpkg system.  This
+contains OpenSSL 3.0.z.
 
 The code installs the packages with [ruby/setup-ruby](https://github.com/ruby/setup-ruby),
 then updates the MSYS2 and vcpkg packages.  If any packages have been updated, it creates

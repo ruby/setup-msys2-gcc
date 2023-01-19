@@ -6,6 +6,15 @@
 # Windows runner's hard drive, smaller zip files speed up the installation.
 # Hence, many of the 'doc' related files in the 'share' folder are removed.
 
+# OpenSSL - There are comments and code lines that are commented out.  The archives
+# may need to have one version of OpenSSL fully installed, and if that version
+# differs from the current MSYS2 version, the OpenSSL files needed to run (not build)
+# the MSYS2 utilities need to remain.  They should be from the most recent version
+# that MSYS2 uses.
+#
+# This means there are files that are not associated with an installed package,
+# so the code gets more complex, and some code is just needed for the transition.
+
 require 'fileutils'
 require_relative 'common'
 
@@ -19,20 +28,30 @@ module CreateMingwGCC
     SYNC  = 'var/lib/pacman/sync'
     LOCAL = 'var/lib/pacman/local'
 
+    PKG_NAME = ARGV[0].downcase
+
     PKG_DIR, PKG_PRE =
-      case ARGV[0].downcase[/[^-]+/]
-      when 'ucrt64', 'ucrt64-3.0'
+      case PKG_NAME[/\A[^-]+/]
+      when 'ucrt64'
         ['ucrt64', 'mingw-w64-ucrt-x86_64-']
-      when 'mingw64', 'mingw64-3.0'
+      when 'mingw64'
         ['mingw64', 'mingw-w64-x86_64-']
-      when 'mingw32', 'mingw32-3.0'
+      when 'mingw32'
         ['mingw32', 'mingw-w64-i686-']
       else
         STDOUT.syswrite "Invalid package type, must be ucrt64, mingw64, or mingw32\n"
         exit 1
       end
+
+    MSYS2_PKG = "#{MSYS2_ROOT}/#{PKG_DIR}"
+
+    SSL_3_SAVE_FILES = %w[
+      bin/libcrypto-3-x64.dll
+      bin/libssl-3-x64.dll
+      etc/ssl/openssl.cnf
+    ]
     
-    PKG_NAME = ARGV[0].downcase
+    SSL_1_DLLS = %w[bin/libcrypto-1_1-x64.dll bin/libssl-1_1-x64.dll]
 
     def add_ri2_key
       # appveyor ri2 package signing key
@@ -42,6 +61,26 @@ module CreateMingwGCC
       exec_check "Sign RI2 Key", "bash.exe -c \"pacman-key --lsign-key #{key}\""
     end
 
+    def openssl_downgrade
+      pkg_name = "openssl-1.1.1.s-1-any.pkg.tar.zst"
+      pkg = "https://github.com/ruby/setup-msys2-gcc/releases/download/msys2-packages/#{PKG_PRE}#{pkg_name}"
+      pkg_sig = "#{pkg}.sig"
+
+      # save previous dll files so we can copy back into folder
+      SSL_3_SAVE_FILES.each { |fn| FileUtils.cp "#{MSYS2_PKG}/#{fn}", "." }
+
+      download pkg    , "./#{PKG_PRE}#{pkg_name}"
+      download pkg_sig, "./#{PKG_PRE}#{pkg_name}.sig"
+
+      # install package
+      exec_check "Install OpenSSL Downgrade", "pacman.exe -Udd --noconfirm --noprogressbar #{PKG_PRE}#{pkg_name}"
+
+      # copy previous dlls back into MSYS2 folder
+      SSL_3_SAVE_FILES.each { |fn| FileUtils.cp_r File.basename(fn) , "#{MSYS2_PKG}/#{fn}" }
+      openssl_copy_cert_files
+    end
+
+    # as of Jan-2023, not used, save for future use
     def openssl_upgrade
       add_ri2_key
 
@@ -68,20 +107,37 @@ module CreateMingwGCC
       end
     end
 
+    # Below files are part of the 'ca-certificates' package, they are not
+    # included in the openssl package
+    # This is needed due to MSYS2 OpenSSL 1.1.1 using 'ssl', and the 3.0 version
+    # using 'etc/ssl'.
+    def openssl_copy_cert_files
+      new_dir = "#{MSYS2_PKG}/ssl"
+      old_dir = "#{MSYS2_PKG}/etc/ssl"
+      unless Dir.exist? "#{new_dir}/certs"
+        FileUtils.mkdir_p "#{new_dir}/certs"
+      end
+      %w[cert.pem certs/ca-bundle.crt certs/ca-bundle.trust.crt].each do |fn|
+        if File.exist?("#{old_dir}/#{fn}") && !File.exist?("#{new_dir}/#{fn}")
+          FileUtils.cp "#{old_dir}/#{fn}", "#{new_dir}/#{fn}"
+        end
+      end
+    end
+
     def install_gcc
-      
       args = '--noconfirm --noprogressbar --needed'
       # zlib required by gcc, gdbm for older Rubies
       base_gcc  = %w[make pkgconf libmangle-git tools-git gcc]
       base_ruby = PKG_NAME.end_with?('-3.0') ?
-        %w[gdbm gmp libffi libyaml ragel readline] :
+        %w[gdbm gmp libffi libyaml openssl ragel readline] :
         %w[gdbm gmp libffi libyaml openssl ragel readline]
 
       pkgs = (base_gcc + base_ruby).unshift('').join " #{PKG_PRE}"
 
-      # may not be needed, but...
+      # May not be needed, but...
+      # Note that OpenSSL may need to be ignored
       if PKG_NAME.end_with?('-3.0')
-        pacman_syuu "mingw-w64-ucrt-x86_64-openssl"
+        pacman_syuu
       else
         pacman_syuu
       end
@@ -91,7 +147,11 @@ module CreateMingwGCC
         "#{PACMAN} -S #{args} #{pkgs}"
 
       if PKG_NAME.end_with? '-3.0'
-        openssl_upgrade
+        SSL_1_DLLS.each do |fn|
+          FileUtils.remove_file("#{MSYS2_PKG}/#{fn}") if File.exist?("#{MSYS2_PKG}/#{fn}")
+        end
+      else
+        openssl_downgrade
       end
     end
 
@@ -170,7 +230,7 @@ module CreateMingwGCC
       log_array_2_column updated_pkgs.map { |el| el.sub PKG_PRE, ''}, 48,
         "Installed #{PKG_PRE[0..-2]} Packages"
 
-      if current_pkgs == updated_pkgs
+      if (current_pkgs == updated_pkgs) && !ENV.key?('FORCE_UPDATE')
         STDOUT.syswrite "\n** No update to #{PKG_DIR} gcc tools needed **\n\n"
         exit 0
       else

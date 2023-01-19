@@ -12,6 +12,8 @@ jobs:
   msys2:
     name: >-
       msys2 tools
+    # env:
+    #  FORCE_UPDATE: true
     runs-on: windows-2022
     strategy:
       fail-fast: false
@@ -43,12 +45,15 @@ jobs:
   gcc:
     name: >-
       ${{ matrix.gcc }} gcc
+    env:
+      FORCE_UPDATE: true
     runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
         include:
           - { gcc: mingw64    , ruby: mingw }
+          - { gcc: mingw64-3.0, ruby: mingw }
           - { gcc: ucrt64     , ruby: ucrt  }
           - { gcc: ucrt64-3.0 , ruby: 3.2   }
     steps:

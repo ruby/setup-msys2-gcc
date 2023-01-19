@@ -12,6 +12,8 @@ jobs:
   mswin:
     name: >-
       mswin vcpkg tools
+    env:
+      FORCE_UPDATE: true
     runs-on: windows-2022
     strategy:
       fail-fast: false
