@@ -44,12 +44,6 @@ module CreateMingwGCC
       end
 
     MSYS2_PKG = "#{MSYS2_ROOT}/#{PKG_DIR}"
-
-    SSL_3_SAVE_FILES = %w[
-      bin/libcrypto-3-x64.dll
-      bin/libssl-3-x64.dll
-      etc/ssl/openssl.cnf
-    ]
     
     SSL_1_DLLS = %w[bin/libcrypto-1_1-x64.dll bin/libssl-1_1-x64.dll]
 
@@ -134,11 +128,15 @@ module CreateMingwGCC
 
       pkgs = (base_gcc + base_ruby).unshift('').join " #{PKG_PRE}"
 
+      SSL_3_SAVE_FILES.each do |fn|
+        FileUtils.remove_file "#{MSYS2_PKG}/#{fn}" if File.exist? "#{MSYS2_PKG}/#{fn}"
+      end
+
       # May not be needed, but...
       # Note that OpenSSL may need to be ignored
       if PKG_NAME.end_with?('-3.0')
         pacman_syuu
-      else
+     else
         pacman_syuu
       end
 

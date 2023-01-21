@@ -14,7 +14,6 @@ module CreateMSYS2Tools
 
     include Common
 
-    MSYS2_ROOT = 'C:/msys64'
     TEMP = ENV.fetch('RUNNER_TEMP') { ENV.fetch('RUNNER_WORKSPACE') { ENV['TEMP'] } }
     ORIG_MSYS2 = "#{TEMP}/msys64".gsub '\\', '/'
 
@@ -22,7 +21,15 @@ module CreateMSYS2Tools
     LOCAL = 'var/lib/pacman/local'
     CACHE = 'var/cache/pacman/pkg'
 
+    MSYS2_PKG = RUBY_PLATFORM.include?('ucrt') ?
+      "#{MSYS2_ROOT}/ucrt64" : "#{MSYS2_ROOT}/mingw64"
+
     def update_msys2
+
+      SSL_3_SAVE_FILES.each do |fn|
+        FileUtils.remove_file "#{MSYS2_PKG}/#{fn}" if File.exist? "#{MSYS2_PKG}/#{fn}"
+      end
+
       updated_keys = pacman_syuu
 
       pkgs = 'autoconf-wrapper autogen automake-wrapper bison diffutils libtool m4 make patch re2c texinfo texinfo-tex compression'

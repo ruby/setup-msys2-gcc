@@ -34,6 +34,12 @@ module Common
   PACMAN     = 'C:/msys64/usr/bin/pacman.exe'
   BASH       = 'C:/msys64/usr/bin/bash.exe'
 
+  SSL_3_SAVE_FILES = %w[
+    bin/libcrypto-3-x64.dll
+    bin/libssl-3-x64.dll
+    etc/ssl/openssl.cnf
+  ]
+
   def gh_api_graphql(http, query)
     body = {}
     body["query"] = query
