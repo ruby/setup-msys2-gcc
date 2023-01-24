@@ -128,8 +128,10 @@ module CreateMingwGCC
 
       pkgs = (base_gcc + base_ruby).unshift('').join " #{PKG_PRE}"
 
-      SSL_3_SAVE_FILES.each do |fn|
-        FileUtils.remove_file "#{MSYS2_PKG}/#{fn}" if File.exist? "#{MSYS2_PKG}/#{fn}"
+      unless PKG_NAME.end_with? '-3.0'
+        SSL_3_SAVE_FILES.each do |fn|
+          FileUtils.remove_file "#{MSYS2_PKG}/#{fn}" if File.exist? "#{MSYS2_PKG}/#{fn}"
+        end
       end
 
       # May not be needed, but...
