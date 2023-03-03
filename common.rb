@@ -304,7 +304,7 @@ module Common
 
   def refresh_keys
     STDOUT.syswrite "\n#{YEL}#{LINE} Refresh keys#{RST}\n"
-    gpg_conf_key_server 'pool.sks-keyservers.net', 'keyserver.ubuntu.com'
+    gpg_conf_key_server 'keyserver.ubuntu.com', 'keys.openpgp.org'
 
     str = ''
     cmd = "#{BASH} -c \"pacman-key --refresh-keys\""
@@ -313,12 +313,8 @@ module Common
 
     system 'taskkill /f /fi "MODULES eq msys-2.0.dll"'
 
-    if str.match?(/new signatures:|signatures cleaned:/)
-      STDOUT.syswrite str
-      true
-    else
-      nil
-    end
+    STDOUT.syswrite str
+    str.match?(/new signatures:|signatures cleaned:/) ? true : nil
   end
 
   def pacman_syuu(ignore = nil)
