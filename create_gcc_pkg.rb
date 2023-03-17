@@ -121,7 +121,7 @@ module CreateMingwGCC
     def install_gcc
       args = '--noconfirm --noprogressbar --needed'
       # zlib required by gcc, gdbm for older Rubies
-      base_gcc  = %w[make pkgconf libmangle-git tools-git gcc]
+      base_gcc  = %w[make pkgconf libmangle-git tools-git gcc curl]
       base_ruby = PKG_NAME.end_with?('-3.0') ?
         %w[gdbm gmp libffi libyaml openssl ragel readline] :
         %w[gdbm gmp libffi libyaml openssl ragel readline]
