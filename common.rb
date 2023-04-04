@@ -74,8 +74,9 @@ module Common
 
   def set_v3_common_headers(req, connection: nil)
     req['User-Agent'] = GH_NAME
-    req['Authorization'] = "token #{TOKEN}"
+    req['Authorization'] = "Bearer #{TOKEN}"
     req['Accept'] = 'application/vnd.github+json'  # old 'application/vnd.github.v3+json'
+    req['X-GitHub-Api-Version'] = '2022-11-28'
     req['Connection'] = 'close' if connection == 'close'
   end
 
