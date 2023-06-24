@@ -33,6 +33,7 @@ jobs:
           $env:VCPKG_ROOT = $env:VCPKG_INSTALLATION_ROOT
           cd $env:VCPKG_INSTALLATION_ROOT
           git pull -q
+          C:/msys64/usr/bin/patch.exe -p1 -N --no-backup-if-mismatch -i $env:GITHUB_WORKSPACE/bootstrap-06-22.patch
           ./bootstrap-vcpkg.bat
           echo "`n———————————— ./vcpkg list ————————————"
           ./vcpkg list
