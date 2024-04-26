@@ -58,7 +58,7 @@ module CreateMingwGCC
     def openssl_downgrade
       add_ri2_key
 
-      pkg_name = "openssl-1.1.1.t-1-any.pkg.tar.zst"
+      pkg_name = "openssl-1.1.1.w-1-any.pkg.tar.zst"
       pkg = "https://github.com/ruby/setup-msys2-gcc/releases/download/msys2-packages/#{PKG_PRE}#{pkg_name}"
       pkg_sig = "#{pkg}.sig"
 

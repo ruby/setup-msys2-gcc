@@ -30,19 +30,19 @@ updated files to the 7z.  All Ruby Windows releases from version 2.4 and later u
 tools.
 
 * **`mingw64.7z`** This contains the mingw64 gcc chain and any packages needed to build
-Ruby.  This has OpenSSL 1.1.1 installed, as of 19-Jan-2023, 1.1.1.s.  Normal Ruby Windows
+Ruby.  This has OpenSSL 1.1.1 installed, as of 26-Apr-2024, 1.1.1.w.  Normal Ruby Windows
 releases from version 2.4 thru 3.0 use these tools.
 
 * **`mingw64-3.0.7z`** This contains the mingw64 gcc chain and any packages needed to build
-Ruby.  The MSYS2 OpenSSL 3.0.z package is installed.  The mingw Ruby master build is the
+Ruby.  The MSYS2 OpenSSL 3.3.z package is installed.  The mingw Ruby master build is the
 only build that uses this.
 
 * **`ucrt64.7z`** This contains the ucrt64 gcc chain and any packages needed to build
-Ruby.  This has OpenSSL 1.1.1 installed, as of 19-Jan-2023, 1.1.1.s.  Ruby version 3.1 is
+Ruby.  This has OpenSSL 1.1.1 installed, as of 26-Apr-2024, 1.1.1.w.  Ruby version 3.1 is
 the only release that uses this.
 
 * **`ucrt64-3.0.7z`** This contains the ucrt64 gcc chain and any packages needed to build
-Ruby. The MSYS2 OpenSSL 3.0.z package is installed.  Ruby 3.2, head, & ucrt builds use this.
+Ruby. The MSYS2 OpenSSL 3.3.z package is installed.  Ruby 3.2, head, & ucrt builds use this.
 
 * **`mswin.7z`** This contains files needed to compile Windows Ruby mswin builds. It contains
 libffi, libyaml, openssl, readline, and zlib, built with the Microsoft vcpkg system.  This
