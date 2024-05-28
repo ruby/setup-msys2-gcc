@@ -52,7 +52,7 @@ module CreateMingwGCC
       key = 'F98B8484BE8BF1C5'
       exec_check "pacman-key --init", "bash.exe -c \"pacman-key --init\""
       exec_check "Get RI2 Key" , "bash.exe -c \"pacman-key --recv-keys #{key}\""
-      exec_check "Sign RI2 Key", "bash.exe -c \"pacman-key --lsign-key #{key}\""
+      exec_check "Sign RI2 Key", "bash.exe -c \"pacman-key --lsign-key #{key}\"", false
     end
 
     def openssl_downgrade
@@ -67,6 +67,8 @@ module CreateMingwGCC
 
       download pkg    , "./#{PKG_PRE}#{pkg_name}"
       download pkg_sig, "./#{PKG_PRE}#{pkg_name}.sig"
+
+      STDOUT.syswrite END_GROUP
 
       # install package
       exec_check "Install OpenSSL Downgrade", "pacman.exe -Udd --noconfirm --noprogressbar #{PKG_PRE}#{pkg_name}"
