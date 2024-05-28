@@ -326,11 +326,13 @@ module Common
 
     ignore = ignore ? "--ignore #{ignore}" : nil
 
-    exec_check 'Updating all installed packages', "#{PACMAN} -Syuu  --noconfirm #{ignore}"
+    cmd = "#{PACMAN} -Syuu --disable-download-timeout --noconfirm #{ignore}"
+
+    exec_check 'Updating all installed packages', cmd
 
     system 'taskkill /f /fi "MODULES eq msys-2.0.dll"'
 
-    exec_check 'Updating all installed packages (2nd pass)', "#{PACMAN} -Syuu  --noconfirm #{ignore}"
+    exec_check 'Updating all installed packages (2nd pass)', cmd
 
     system 'taskkill /f /fi "MODULES eq msys-2.0.dll"'
 
