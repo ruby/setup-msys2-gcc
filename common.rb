@@ -26,7 +26,7 @@ module Common
   RED   = "\e[91m"
   YEL   = "\e[93m"
   RST   = "\e[0m"
-  END_GROUP = "##[endgroup]\n\n"
+  END_GROUP = "##[endgroup]\n"
 
   # Repo specific constants
   TAG = 'msys2-gcc-pkgs' # GitHub release tag
@@ -304,7 +304,7 @@ module Common
   end
 
   def refresh_keys
-    STDOUT.syswrite "\n#{YEL}#{LINE} Refresh keys#{RST}\n"
+    STDOUT.syswrite "\n##[group]#{YEL}#{LINE} Refresh keys#{RST}\n"
     gpg_conf_key_server 'keyserver.ubuntu.com', 'keys.openpgp.org'
 
     str = ''
@@ -314,7 +314,8 @@ module Common
 
     system 'taskkill /f /fi "MODULES eq msys-2.0.dll"'
 
-    STDOUT.syswrite str
+    STDOUT.syswrite "#{str}\n#{END_GROUP}"
+    
     str.match?(/new signatures:|signatures cleaned:/) ? true : nil
   end
 
@@ -328,21 +329,22 @@ module Common
 
     cmd = "#{PACMAN} -Syuu --disable-download-timeout --noconfirm #{ignore}"
 
-    exec_check 'Updating all installed packages', cmd
-
+    exec_check 'Updating all installed packages', cmd, false
     system 'taskkill /f /fi "MODULES eq msys-2.0.dll"'
+    STDOUT.syswrite END_GROUP
 
-    exec_check 'Updating all installed packages (2nd pass)', cmd
-
+    exec_check 'Updating all installed packages (2nd pass)', cmd, false
     system 'taskkill /f /fi "MODULES eq msys-2.0.dll"'
+    STDOUT.syswrite END_GROUP
 
     refresh_keys
   end
 
   # logs message and runs cmd, checking for error
-  def exec_check(msg, cmd)
-    STDOUT.syswrite "\n#{YEL}#{LINE} #{msg}#{RST}\n"
+  def exec_check(msg, cmd, write_group_end = true)
+    STDOUT.syswrite "\n##[group]#{YEL}#{LINE} #{msg}#{RST}\n"
     exit 1 unless system cmd
+    STDOUT.syswrite END_GROUP if write_group_end
   end
 
   def log_array_2_column(ary, wid, hdr)

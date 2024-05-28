@@ -33,7 +33,7 @@ module CreateMSYS2Tools
       updated_keys = pacman_syuu
 
       pkgs = 'autoconf-wrapper autogen automake-wrapper bison diffutils libtool m4 make patch re2c texinfo texinfo-tex compression'
-      exec_check "Install MSYS2 packages#{RST}\n#{YEL}#{pkgs}",
+      exec_check "Install MSYS2 Packages#{RST}\n#{YEL}#{pkgs}",
         "#{PACMAN} -S --noconfirm --needed --noprogressbar #{pkgs}"
       updated_keys
     end
