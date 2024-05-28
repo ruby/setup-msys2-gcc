@@ -42,7 +42,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         timeout-minutes: 10
 
-  gcc:
+  gcc-mingw:
+    if: ${{ always() }}
+    needs: msys2
     name: >-
       ${{ matrix.gcc }} gcc
     #env:
@@ -54,6 +56,34 @@ jobs:
         include:
           - { gcc: mingw64    , ruby: '3.0' }
           - { gcc: mingw64-3.0, ruby: mingw }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+        timeout-minutes: 7
+
+      - name: Update ${{ matrix.gcc }} gcc 7z and Upload
+        run:  ruby create_gcc_pkg.rb ${{ matrix.gcc }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        timeout-minutes: 13
+
+  gcc-ucrt:
+    if: ${{ always() }}
+    needs: gcc-mingw
+    name: >-
+      ${{ matrix.gcc }} gcc
+    #env:
+    #  FORCE_UPDATE: true
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
           - { gcc: ucrt64     , ruby: 3.1   }
           - { gcc: ucrt64-3.0 , ruby: ucrt  }
     steps:
@@ -70,4 +100,5 @@ jobs:
         run:  ruby create_gcc_pkg.rb ${{ matrix.gcc }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        timeout-minutes: 10
+        timeout-minutes: 13
+
