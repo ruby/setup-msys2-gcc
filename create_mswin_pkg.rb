@@ -12,7 +12,7 @@ module CreateMswin
 
     include Common
 
-    PACKAGES = 'libffi libyaml openssl readline-win32 zlib'
+    PACKAGES = 'gmp libffi libyaml openssl readline-win32 zlib'
     PKG_DEPENDS = 'vcpkg-cmake vcpkg-cmake-config vcpkg-cmake-get-vars'
 
     PKG_NAME = 'mswin'
@@ -58,8 +58,16 @@ module CreateMswin
       ENV['VCPKG_ROOT'] = VCPKG
 
       Dir.chdir VCPKG do |d|
+
+        install_info = %x(./vcpkg install  #{PACKAGES} --triplet=x64-windows --dry-run)
+        
+        installed_packages = install_info.include?('The following packages will be built and installed')
+
+        exec_check "Installing #{PACKAGES}",
+          "./vcpkg install #{PACKAGES} --triplet=x64-windows"
+
         update_info = %x(./vcpkg update)
-        if update_info.include?('No packages need updating') && !ENV.key?('FORCE_UPDATE')
+        if !installed_packages && update_info.include?('No packages need updating') && !ENV.key?('FORCE_UPDATE')
           STDOUT.syswrite "\n#{GRN}No packages need updating#{RST}\n\n"
           exit 0
         else

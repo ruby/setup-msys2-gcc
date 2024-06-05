@@ -32,7 +32,7 @@ jobs:
         run:  |
           $env:VCPKG_ROOT = $env:VCPKG_INSTALLATION_ROOT
           cd $env:VCPKG_INSTALLATION_ROOT
-          git pull -q
+          git pull --no-tags -q
           ./bootstrap-vcpkg.bat
           echo "`n———————————— ./vcpkg list ————————————"
           ./vcpkg list
