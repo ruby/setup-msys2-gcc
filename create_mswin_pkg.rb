@@ -80,6 +80,9 @@ module CreateMswin
         exec_check "Removing outdated packages",
           "./vcpkg remove --outdated"
 
+        exec_check "Package List",
+          "./vcpkg list"
+
         exec_check "Exporting package files from vcpkg",
           "./vcpkg export --triplet=x64-windows #{PACKAGES} --raw --output=#{PKG_NAME} --output-dir=#{EXPORT_DIR}"
       end
