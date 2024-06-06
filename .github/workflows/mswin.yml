@@ -31,11 +31,14 @@ jobs:
       - name: update vcpkg installation
         run:  |
           $env:VCPKG_ROOT = $env:VCPKG_INSTALLATION_ROOT
+          echo "::group::————————————— git pull —————————————"
           cd $env:VCPKG_INSTALLATION_ROOT
-          git pull --no-tags -q
+          # --depth=1 may cause 'fatal: refusing to merge unrelated histories'
+          git pull --no-tags -q --depth=1000
+          echo ::endgroup::
+          echo "`n———————————— commit info ————————————"
+          git log -1 --pretty=format:'%H %cs%n%n'
           ./bootstrap-vcpkg.bat
-          echo "`n———————————— ./vcpkg list ————————————"
-          ./vcpkg list
         timeout-minutes: 15
 
       - name: Update mswin tools 7z and Upload
