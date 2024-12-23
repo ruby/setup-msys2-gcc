@@ -12,7 +12,7 @@ module CreateMswin
 
     include Common
 
-    PACKAGES = 'gmp libffi libyaml openssl readline-win32 zlib'
+    PACKAGES = 'pkgconf gmp libffi libyaml openssl readline-win32 zlib'
     PKG_DEPENDS = 'vcpkg-cmake vcpkg-cmake-config vcpkg-cmake-get-vars'
 
     PKG_NAME = 'mswin'
