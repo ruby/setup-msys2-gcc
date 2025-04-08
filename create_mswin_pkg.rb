@@ -13,7 +13,7 @@ module CreateMswin
     include Common
 
     PACKAGES = 'pkgconf gmp libffi libyaml openssl readline-win32 zlib'
-    PKG_DEPENDS = 'vcpkg-cmake vcpkg-cmake-config vcpkg-cmake-get-vars'
+    PKG_DEPENDS = 'vcpkg-cmake vcpkg-cmake-config vcpkg-cmake-get-vars vcpkg-tool-meson'
 
     PKG_NAME = 'mswin'
 
@@ -78,7 +78,7 @@ module CreateMswin
           "./vcpkg upgrade #{PACKAGES} #{PKG_DEPENDS} --triplet=x64-windows --no-dry-run"
 
         exec_check "Removing outdated packages",
-          "./vcpkg remove --outdated"
+          "./vcpkg remove --outdated --recurse"
 
         exec_check "Package List",
           "./vcpkg list"
