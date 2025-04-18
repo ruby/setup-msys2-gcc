@@ -11,17 +11,24 @@ on:
 jobs:
   msys2:
     name: >-
-      msys2 tools
+      ${{ matrix.name }} tools
     #env:
     #  FORCE_UPDATE: true
-    runs-on: windows-2022
+    permissions:
+      contents: write
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      matrix:
+        include:
+          - { os: windows-2022, ruby: ucrt, name: msys2, type: ucrt64, windows-toolchain: default }
+          - { os: windows-11-arm, ruby: 3.4, name: msys2-arm64, type: clangarm64, windows-toolchain: none }
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Copy msys2 files to temp dir
+        if: matrix.windows-toolchain == 'default'
         run:  |
           $temp = $env:RUNNER_TEMP
           md $temp\msys64
@@ -30,16 +37,33 @@ jobs:
           xcopy C:\msys64 $temp\msys64 /s /q
         timeout-minutes: 15
 
+      - name: Install msys2
+        if: matrix.windows-toolchain == 'none'
+        run:  |
+          (New-Object System.Net.WebClient).DownloadFile("https://repo.msys2.org/distrib/msys2-x86_64-latest.sfx.exe", "msys2-x86_64-latest.sfx.exe")
+          (New-Object System.Net.WebClient).DownloadFile("https://repo.msys2.org/distrib/msys2-x86_64-latest.sfx.exe.sig", "msys2-x86_64-latest.sfx.exe.sig")
+          gpg --keyserver keyserver.ubuntu.com --recv "0EBF 782C 5D53 F7E5 FB02  A667 46BD 761F 7A49 B0EC"
+          gpg --verify msys2-x86_64-latest.sfx.exe.sig
+
+          .\msys2-x86_64-latest.sfx.exe -y -oC:\
+
+          C:\msys64\msys2_shell.cmd -defterm -here -no-start -${{ matrix.type }}
+
+          echo "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "C:\msys64\${{ matrix.type }}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        timeout-minutes: 15
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: ucrt
+          ruby-version: ${{ matrix.ruby }}
+          windows-toolchain: ${{ matrix.windows-toolchain }}
         timeout-minutes: 7
 
       - name: Update msys2 tools 7z and Upload
-        run:  ruby create_msys2_pkg.rb
+        run:  ruby create_msys2_pkg.rb ${{ matrix.name }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         timeout-minutes: 10
 
   gcc-mingw:
@@ -49,6 +73,8 @@ jobs:
       ${{ matrix.gcc }} gcc
     #env:
     #  FORCE_UPDATE: true
+    permissions:
+      contents: write
     runs-on: windows-2022
     strategy:
       fail-fast: false
@@ -69,16 +95,18 @@ jobs:
       - name: Update ${{ matrix.gcc }} gcc 7z and Upload
         run:  ruby create_gcc_pkg.rb ${{ matrix.gcc }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         timeout-minutes: 13
 
   gcc-ucrt:
     if: ${{ always() }}
-    needs: gcc-mingw
+    needs: msys2
     name: >-
       ${{ matrix.gcc }} gcc
     #env:
     #  FORCE_UPDATE: true
+    permissions:
+      contents: write
     runs-on: windows-2022
     strategy:
       fail-fast: false
@@ -99,6 +127,37 @@ jobs:
       - name: Update ${{ matrix.gcc }} gcc 7z and Upload
         run:  ruby create_gcc_pkg.rb ${{ matrix.gcc }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        timeout-minutes: 13
+
+  gcc-clangarm64:
+    if: ${{ always() }}
+    needs: msys2
+    name: >-
+      ${{ matrix.gcc }} gcc
+    #env:
+    #  FORCE_UPDATE: true
+    permissions:
+      contents: write
+    runs-on: windows-11-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { gcc: clangarm64-3.0 , ruby: 3.4 }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+        timeout-minutes: 7
+
+      - name: Update ${{ matrix.gcc }} gcc 7z and Upload
+        run:  ruby create_gcc_pkg.rb ${{ matrix.gcc }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         timeout-minutes: 13
 

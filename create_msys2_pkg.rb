@@ -21,8 +21,22 @@ module CreateMSYS2Tools
     LOCAL = 'var/lib/pacman/local'
     CACHE = 'var/cache/pacman/pkg'
 
-    MSYS2_PKG = RUBY_PLATFORM.include?('ucrt') ?
-      "#{MSYS2_ROOT}/ucrt64" : "#{MSYS2_ROOT}/mingw64"
+    MSYS2_PKG = case RUBY_PLATFORM
+                when 'aarch64-mingw-ucrt'
+                  "#{MSYS2_ROOT}/clangarm64"
+                when /ucrt$/
+                  "#{MSYS2_ROOT}/ucrt64"
+                else
+                  "#{MSYS2_ROOT}/mingw64"
+                end
+
+    PKG_NAME = ARGV[0].downcase
+
+    SSL_3_SAVE_FILES = %w[
+      bin/libcrypto-3-x64.dll
+      bin/libssl-3-x64.dll
+      etc/ssl/openssl.cnf
+    ]
 
     def update_msys2
 
@@ -101,8 +115,6 @@ module CreateMSYS2Tools
 
       log_array_2_column updated_pkgs, 48, "Installed MSYS2 Packages"
 
-      gpg_files = Dir["#{MSYS2_ROOT}/etc/pacman.d/gnupg/*"].count { |fn| File.file? fn }
-
       if current_pkgs == updated_pkgs && !updated_keys && !ENV.key?('FORCE_UPDATE')
         STDOUT.syswrite "\n** No update to MSYS2 tools needed **\n\n"
         exit 0
@@ -110,20 +122,27 @@ module CreateMSYS2Tools
         STDOUT.syswrite "\n#{GRN}** Creating and Uploading MSYS update 7z **#{RST}\n\n"
       end
 
-      remove_non_msys2
-      remove_duplicate_files
-      clean_database 'msys'
-      clean_packages
+      exec_check "Remove all uninstalled packages" , "#{BASH} -c \"paccache -r -f -u -k0\""
+      exec_check "Keep the newest for all other packages" , "#{BASH} -c \"paccache -r -f -k1\""
+      exec_check "Remove all cached packages" , "#{PACMAN} -Scc --noconfirm"
+
+      # create a delta package for existing mysys installation on the runner
+      if File.exist?(ORIG_MSYS2)
+        remove_non_msys2
+        remove_duplicate_files
+        clean_database 'msys'
+        clean_packages
+      end
 
       # create 7z file
       STDOUT.syswrite "##[group]#{YEL}Create msys2 7z file#{RST}\n"
-      tar_path = "#{Dir.pwd}\\msys2.7z".gsub '/', '\\'
+      tar_path = "#{Dir.pwd}\\#{PKG_NAME}.7z".gsub '/', '\\'
       Dir.chdir MSYS2_ROOT do
         exit 1 unless system "\"#{SEVEN}\" a #{tar_path}"
       end
       STDOUT.syswrite "##[endgroup]\n"
 
-      upload_7z_update 'msys2', time
+      upload_7z_update PKG_NAME, time
     end
   end
 end

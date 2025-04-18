@@ -16,25 +16,30 @@ Below summarizes the default MSYS2 installations on Actions Windows images:
 
 | Actions<br/>Image  |  MSYS<br/>Base | MSYS<br/>Build Tools | mingw64<br/>gcc & tools | mingw64<br/>packages | ucrt64<br/>gcc & tools | ucrt64<br/>packages |
 |--------------------|:--------------:|:--------------------:|:-----------------------:|:--------------------:|:----------------------:|:-------------------:|
+| **11-arm**         | No  | No  | No  | No  | No  | No |
 | **2022 and later** | Yes | No  | No  | No  | No  | No |
 | **2016, 2019**     | Yes | Yes | Yes | Some | No  | No  |
 
 ### Notes
 
-Six package files are stored in a GitHub release, and are used by
+Eight package files are stored in a GitHub release, and are used by
 [ruby/setup-ruby](https://github.com/ruby/setup-ruby).  They are:
 
 * **`msys2.7z`** The base msys2 installation on Actions Windows images contains a minimal
 set of bash tools, and no shared build tools.  Code updates the MSYS2 files, and saves only
-updated files to the 7z.  All Ruby Windows releases from version 2.4 and later use these
+updated files to the 7z.  All Ruby Windows x64 releases from version 2.4 and later use these
 tools.
+
+* **`msys2-arm64.7z`** The base msys2 installation on Actions Windows images contains a minimal
+set of bash tools, and no shared build tools.  Code saves complate base MSYS2 files to the 7z.
+All Ruby Windows arm64 releases from version 3.4 and later use these tools.
 
 * **`mingw64.7z`** This contains the mingw64 gcc chain and any packages needed to build
 Ruby.  This has OpenSSL 1.1.1 installed, as of 26-Apr-2024, 1.1.1.w.  Normal Ruby Windows
 releases from version 2.4 thru 3.0 use these tools.
 
 * **`mingw64-3.0.7z`** This contains the mingw64 gcc chain and any packages needed to build
-Ruby.  The MSYS2 OpenSSL 3.3.z package is installed.  The mingw Ruby master build is the
+Ruby.  The MSYS2 OpenSSL 3.y.z package is installed.  The mingw Ruby master build is the
 only build that uses this.
 
 * **`ucrt64.7z`** This contains the ucrt64 gcc chain and any packages needed to build
@@ -42,7 +47,11 @@ Ruby.  This has OpenSSL 1.1.1 installed, as of 26-Apr-2024, 1.1.1.w.  Ruby versi
 the only release that uses this.
 
 * **`ucrt64-3.0.7z`** This contains the ucrt64 gcc chain and any packages needed to build
-Ruby. The MSYS2 OpenSSL 3.3.z package is installed.  Ruby 3.2, head, & ucrt builds use this.
+Ruby. The MSYS2 OpenSSL 3.y.z package is installed.  Ruby 3.2, head, & ucrt builds use this.
+
+* **`clangarm64-3.0.7z`** This contains the clangarm64 gcc chain and any packages needed to build
+Ruby. The MSYS2 OpenSSL 3.y.z package is installed.  Ruby 3.4 and head builds on windows arm64
+use this.
 
 * **`mswin.7z`** This contains files needed to compile Windows Ruby mswin builds. It contains
 libffi, libyaml, openssl, readline, and zlib, built with the Microsoft vcpkg system.  This
