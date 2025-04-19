@@ -60,7 +60,7 @@ module CreateMswin
       Dir.chdir VCPKG do |d|
 
         install_info = %x(./vcpkg install  #{PACKAGES} --triplet=x64-windows --dry-run)
-        
+
         installed_packages = install_info.include?('The following packages will be built and installed')
 
         exec_check "Installing #{PACKAGES}",
@@ -101,7 +101,7 @@ module CreateMswin
 
     def run
       generate_package_files
-      
+
       copy_ssl_files
 
       # create 7z archive file
