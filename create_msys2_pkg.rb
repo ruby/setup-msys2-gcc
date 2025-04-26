@@ -126,13 +126,10 @@ module CreateMSYS2Tools
       exec_check "Keep the newest for all other packages" , "#{BASH} -c \"paccache -r -f -k1\""
       exec_check "Remove all cached packages" , "#{PACMAN} -Scc --noconfirm"
 
-      # create a delta package for existing mysys installation on the runner
-      if File.exist?(ORIG_MSYS2)
-        remove_non_msys2
-        remove_duplicate_files
-        clean_database 'msys'
-        clean_packages
-      end
+      remove_non_msys2
+      remove_duplicate_files if File.exist?(ORIG_MSYS2)
+      clean_database 'msys'
+      clean_packages
 
       # create 7z file
       STDOUT.syswrite "##[group]#{YEL}Create msys2 7z file#{RST}\n"
