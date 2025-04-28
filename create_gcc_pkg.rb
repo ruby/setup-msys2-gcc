@@ -55,6 +55,20 @@ module CreateMingwGCC
       exec_check "Sign RI2 Key", "bash.exe -c \"pacman-key --lsign-key #{key}\"", false
     end
 
+    def gcc_downgrade
+      ['gcc-libs', 'gcc'].each do |base|
+        pkg_name = "#{base}-#{@gcc}-any.pkg.tar.zst"
+        pkg = "https://github.com/ruby/setup-msys2-gcc/releases/download/msys2-packages/#{PKG_PRE}#{pkg_name}"
+        pkg_sig = "#{pkg}.sig"
+
+        download pkg    , "./#{PKG_PRE}#{pkg_name}"
+        download pkg_sig, "./#{PKG_PRE}#{pkg_name}.sig"
+
+        # install package
+        exec_check "Install #{base}-#{@gcc} Downgrade", "pacman.exe -Udd --noconfirm --noprogressbar #{PKG_PRE}#{pkg_name}"
+      end
+    end
+
     def openssl_downgrade
       add_ri2_key
 
@@ -123,9 +137,16 @@ module CreateMingwGCC
     end
 
     def install_gcc
+
+      @gcc = '14.2.0-3'
+
       args = '--noconfirm --noprogressbar --needed'
+
       # zlib required by gcc, gdbm for older Rubies
-      base_gcc  = %w[make pkgconf libmangle-git tools-git gcc curl]
+      base_gcc = @gcc ?
+        %w[make pkgconf libmangle-git tools-git curl] :
+        %w[make pkgconf libmangle-git tools-git gcc curl]
+
       base_ruby = PKG_NAME.end_with?('-3.0') ?
         %w[gdbm gmp libffi libyaml openssl ragel readline] :
         %w[gdbm gmp libffi libyaml openssl ragel readline]
@@ -142,9 +163,11 @@ module CreateMingwGCC
       # Note that OpenSSL may need to be ignored
       if PKG_NAME.end_with?('-3.0')
         pacman_syuu
-     else
+      else
         pacman_syuu
       end
+
+      gcc_downgrade if @gcc
 
       exec_check "Updating the following #{PKG_PRE[0..-2]} packages:#{RST}\n" \
         "#{YEL}#{(base_gcc + base_ruby).join ' '}",
