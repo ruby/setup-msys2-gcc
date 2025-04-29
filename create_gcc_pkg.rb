@@ -144,7 +144,7 @@ module CreateMingwGCC
 
     def install_gcc
 
-      @gcc = '14.2.0-3'
+      @gcc = PKG_DIR == 'clangarm64' ? nil : '14.2.0-3'
 
       args = '--noconfirm --noprogressbar --needed'
 
