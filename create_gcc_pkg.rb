@@ -38,14 +38,26 @@ module CreateMingwGCC
         ['mingw64', 'mingw-w64-x86_64-']
       when 'mingw32'
         ['mingw32', 'mingw-w64-i686-']
+      when 'clangarm64'
+        ['clangarm64', 'mingw-w64-clang-aarch64-']
       else
-        STDOUT.syswrite "Invalid package type, must be ucrt64, mingw64, or mingw32\n"
+        STDOUT.syswrite "Invalid package type, must be ucrt64, mingw64, mingw32, or clangarm64\n"
         exit 1
       end
 
     MSYS2_PKG = "#{MSYS2_ROOT}/#{PKG_DIR}"
-    
-    SSL_1_DLLS = %w[bin/libcrypto-1_1-x64.dll bin/libssl-1_1-x64.dll]
+
+    SSL_1_DLLS = if PKG_DIR == 'clangarm64'
+                   %w[bin/libcrypto-1_1.dll bin/libssl-1_1.dll]
+                 else
+                   %w[bin/libcrypto-1_1-x64.dll bin/libssl-1_1-x64.dll]
+                 end
+
+    SSL_3_SAVE_FILES = if PKG_DIR == 'clangarm64'
+                         %w[bin/libcrypto-3.dll bin/libssl-3.dll etc/ssl/openssl.cnf]
+                       else
+                         %w[bin/libcrypto-3-x64.dll bin/libssl-3-x64.dll etc/ssl/openssl.cnf]
+                       end
 
     def add_ri2_key
       # appveyor ri2 package signing key
@@ -99,11 +111,9 @@ module CreateMingwGCC
       pkg_name = "openssl-3.0.7-1-any.pkg.tar.zst"
       pkg = "https://github.com/oneclick/rubyinstaller2-packages/releases/download/ci.ri2/#{PKG_PRE}#{pkg_name}"
       pkg_sig = "#{pkg}.sig"
-      old_dlls = %w[libcrypto-1_1-x64.dll libssl-1_1-x64.dll]
-      dll_root = "#{MSYS2_ROOT}/#{PKG_DIR}/bin"
 
       # save previous dll files so we can copy back into folder
-      old_dlls.each { |fn| FileUtils.cp "#{dll_root}/#{fn}", "." }
+      SSL_1_DLLS.each { |fn| FileUtils.cp "#{MSYS2_PKG}/#{fn}", "." }
 
       download pkg    , "./#{PKG_PRE}#{pkg_name}"
       download pkg_sig, "./#{PKG_PRE}#{pkg_name}.sig"
@@ -112,11 +122,7 @@ module CreateMingwGCC
       exec_check "Install OpenSSL Upgrade", "pacman.exe -Udd --noconfirm --noprogressbar #{PKG_PRE}#{pkg_name}"
 
       # copy previous dlls back into MSYS2 folder
-      old_dlls.each do |fn|
-        unless File.exist? "#{dll_root}/#{fn}"
-          FileUtils.cp fn , "#{dll_root}/#{fn}"
-        end
-      end
+      SSL_1_DLLS.each { |fn| FileUtils.cp_r File.basename(fn) , "#{MSYS2_PKG}/#{fn}" }
     end
 
     # Below files are part of the 'ca-certificates' package, they are not
@@ -263,6 +269,10 @@ module CreateMingwGCC
       else
         STDOUT.syswrite "\n#{GRN}** Creating and Uploading #{PKG_DIR} gcc tools 7z **#{RST}\n\n"
       end
+
+      exec_check "Remove all uninstalled packages" , "#{BASH} -c \"paccache -r -f -u -k0\""
+      exec_check "Keep the newest for all other packages" , "#{BASH} -c \"paccache -r -f -k1\""
+      exec_check "Remove all cached packages" , "#{PACMAN} -Scc --noconfirm"
 
       copy_to_temp
 

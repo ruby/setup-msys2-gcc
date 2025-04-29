@@ -34,16 +34,9 @@ module Common
   PACMAN     = 'C:/msys64/usr/bin/pacman.exe'
   BASH       = 'C:/msys64/usr/bin/bash.exe'
 
-  SSL_3_SAVE_FILES = %w[
-    bin/libcrypto-3-x64.dll
-    bin/libssl-3-x64.dll
-    etc/ssl/openssl.cnf
-  ]
-
   def gh_api_graphql(http, query)
     body = {}
     body["query"] = query
-    response = nil
 
     req = Net::HTTP::Post.new '/gh_api_graphql'
     req['Authorization'] = "Bearer #{TOKEN}"
@@ -315,12 +308,12 @@ module Common
     system 'taskkill /f /fi "MODULES eq msys-2.0.dll"'
 
     STDOUT.syswrite "#{str}\n#{END_GROUP}"
-    
+
     str.match?(/new signatures:|signatures cleaned:/) ? true : nil
   end
 
   def pacman_syuu(ignore = nil)
-    
+
     usr_bin = "#{MSYS2_ROOT}/usr/bin"
 
     exit 1 unless system "#{usr_bin}/sed -i 's/^CheckSpace/#CheckSpace/g' C:/msys64/etc/pacman.conf"
