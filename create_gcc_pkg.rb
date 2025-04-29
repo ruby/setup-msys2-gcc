@@ -68,7 +68,14 @@ module CreateMingwGCC
     end
 
     def gcc_downgrade
-      ['gcc-libs', 'gcc'].each do |base|
+      pkgs = if PKG_DIR == 'clangarm64'
+               # https://packages.msys2.org/groups/mingw-w64-clang-aarch64-toolchain
+               %w[libunwind libc++ llvm-libs llvm lld compiler-rt clang-libs clang gcc-compat]
+             else
+               %w[gcc-libs gcc]
+             end
+
+      pkgs.each do |base|
         pkg_name = "#{base}-#{@gcc}-any.pkg.tar.zst"
         pkg = "https://github.com/ruby/setup-msys2-gcc/releases/download/msys2-packages/#{PKG_PRE}#{pkg_name}"
         pkg_sig = "#{pkg}.sig"
