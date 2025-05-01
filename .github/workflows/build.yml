@@ -1,0 +1,511 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force new release'
+        type: boolean
+
+jobs:
+  msys2:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            sys: mingw64
+            env: x86_64
+          - os: windows-2022
+            sys: ucrt64
+            env: ucrt-x86_64
+          - os: windows-11-arm
+            sys: clangarm64
+            env: clang-aarch64
+    steps:
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        id: msys2
+        with:
+          msystem: ${{ matrix.sys }}
+          update: true
+          install: >-
+            autoconf-wrapper
+            autogen
+            automake-wrapper
+            bison
+            compression
+            diffutils
+            libtool
+            m4
+            make
+            patch
+            re2c
+            texinfo
+            texinfo-tex
+
+            mingw-w64-${{ matrix.env }}-curl
+            mingw-w64-${{ matrix.env }}-gcc
+            mingw-w64-${{ matrix.env }}-make
+            mingw-w64-${{ matrix.env }}-pkgconf
+            mingw-w64-${{ matrix.env }}-libmangle-git
+            mingw-w64-${{ matrix.env }}-tools-git
+
+            mingw-w64-${{ matrix.env }}-gdbm
+            mingw-w64-${{ matrix.env }}-gmp
+            mingw-w64-${{ matrix.env }}-libffi
+            mingw-w64-${{ matrix.env }}-libyaml
+            mingw-w64-${{ matrix.env }}-openssl
+            mingw-w64-${{ matrix.env }}-ragel
+            mingw-w64-${{ matrix.env }}-readline
+
+      - name: Archive MSYS2
+        run: |
+          cd "${env:MSYS2_LOCATION}"
+          7z a "${env:GITHUB_WORKSPACE}\msys2-${{ matrix.sys }}.7z"
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+
+      - name: Upload MSYS2
+        uses: actions/upload-artifact@v4
+        with:
+          name: msys2-${{ matrix.sys }}
+          path: msys2-${{ matrix.sys }}.7z
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Download MSYS2 Package Cache
+        run: pacman -Qq | xargs pacman -Sw --noconfirm
+        shell: msys2 {0}
+
+      - name: Archive MSYS2 Package Cache
+        run: |
+          cd "${env:MSYS2_LOCATION}\var\cache\pacman\pkg"
+          7z a "${env:GITHUB_WORKSPACE}\msys2-${{ matrix.sys }}-var-cache-pacman-pkg.7z"
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+
+      - name: Upload MSYS2 Package Cache
+        uses: actions/upload-artifact@v4
+        with:
+          name: msys2-${{ matrix.sys }}-var-cache-pacman-pkg
+          path: msys2-${{ matrix.sys }}-var-cache-pacman-pkg.7z
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Create MSYS2 Package List
+        run: pacman -Q | tee msys2-${{ matrix.sys }}.packages.txt
+        shell: msys2 {0}
+
+      - name: Upload MSYS2 Package List
+        uses: actions/upload-artifact@v4
+        with:
+          name: msys2-${{ matrix.sys }}-packages-txt
+          path: msys2-${{ matrix.sys }}.packages.txt
+          if-no-files-found: error
+
+  msys2-extra:
+    needs: [msys2]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            sys: mingw64
+            env: x86_64
+            variant: -mingw-w64@r688-gcc@14-openssl@1.1
+            install: >-
+              crt-git-12.0.0.r688.g6b2176247-1
+              headers-git-12.0.0.r688.g6b2176247-1
+              libmangle-git-12.0.0.r688.g6b2176247-1
+              libwinpthread-git-12.0.0.r688.g6b2176247-1
+              tools-git-12.0.0.r688.g6b2176247-1
+              winpthreads-git-12.0.0.r688.g6b2176247-1
+              gcc-14.2.0-3
+              gcc-libs-14.2.0-3
+              openssl-1.1.1.w-1
+          - os: windows-2022
+            sys: ucrt64
+            env: ucrt-x86_64
+            variant: -mingw-w64@r688-gcc@14
+            install: >-
+              crt-git-12.0.0.r688.g6b2176247-1
+              headers-git-12.0.0.r688.g6b2176247-1
+              libmangle-git-12.0.0.r688.g6b2176247-1
+              libwinpthread-git-12.0.0.r688.g6b2176247-1
+              tools-git-12.0.0.r688.g6b2176247-1
+              winpthreads-git-12.0.0.r688.g6b2176247-1
+              gcc-14.2.0-3
+              gcc-libs-14.2.0-3
+          - os: windows-2022
+            sys: ucrt64
+            env: ucrt-x86_64
+            variant: -mingw-w64@r688-gcc@14-openssl@1.1
+            install: >-
+              crt-git-12.0.0.r688.g6b2176247-1
+              headers-git-12.0.0.r688.g6b2176247-1
+              libmangle-git-12.0.0.r688.g6b2176247-1
+              libwinpthread-git-12.0.0.r688.g6b2176247-1
+              tools-git-12.0.0.r688.g6b2176247-1
+              winpthreads-git-12.0.0.r688.g6b2176247-1
+              gcc-14.2.0-3
+              gcc-libs-14.2.0-3
+              openssl-1.1.1.w-1
+          - os: windows-11-arm
+            sys: clangarm64
+            env: clang-aarch64
+            variant: -mingw-w64@r688
+            install: >-
+              crt-git-12.0.0.r688.g6b2176247-1
+              headers-git-12.0.0.r688.g6b2176247-1
+              libmangle-git-12.0.0.r688.g6b2176247-1
+              libwinpthread-git-12.0.0.r688.g6b2176247-1
+              tools-git-12.0.0.r688.g6b2176247-1
+              winpthreads-git-12.0.0.r688.g6b2176247-1
+    steps:
+      - name: Download MSYS2
+        uses: actions/download-artifact@v4
+        with:
+          name: msys2-${{ matrix.sys }}
+
+      - name: Setup MSYS2
+        id: msys2
+        run: |
+          7z x msys2-${{ matrix.sys }}.7z "-o${env:RUNNER_TEMP}\msys64"
+
+          md ${env:RUNNER_TEMP}\setup-msys2
+          echo @"
+          @echo off
+          setlocal
+          set CHERE_INVOKING=1
+          IF NOT DEFINED MSYSTEM set MSYSTEM=$("${{ matrix.sys }}".ToUpper())
+          IF NOT DEFINED MSYS2_PATH_TYPE set MSYS2_PATH_TYPE=minimal
+          ${env:RUNNER_TEMP}\msys64\usr\bin\bash.exe -leo pipefail %*
+          "@ | tee ${env:RUNNER_TEMP}\setup-msys2\msys2.cmd
+          echo "${env:RUNNER_TEMP}\setup-msys2" | Tee-Object -FilePath "${env:GITHUB_PATH}" -Encoding UTF8
+
+          echo "msys2-location=${env:RUNNER_TEMP}\msys64" | Tee-Object -FilePath "${env:GITHUB_OUTPUT}" -Append -Encoding UTF8
+
+      - name: Download
+        run: |
+          foreach ($pkg in (-split $env:INSTALL)) {
+            gh release download msys2-packages --repo ${{ github.repository }} --pattern "${pkg}*" --pattern "mingw-w64-${{ matrix.env }}-${pkg}*"
+            if (!$?) { exit 1 }
+          }
+          Get-ChildItem
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INSTALL: ${{ matrix.install }}
+
+      - name: Trust ri2 package signing key
+        if: contains(matrix.install, 'openssl-1.1')
+        run: |
+          pacman-key --recv-keys 79D1D4E12FF93365DEAA8DCEF98B8484BE8BF1C5
+          pacman-key --lsign-key 79D1D4E12FF93365DEAA8DCEF98B8484BE8BF1C5
+        shell: msys2 {0}
+
+      - name: Backup openssl dll/cnf files
+        if: contains(matrix.install, 'openssl-1.1')
+        run: pacman -Qql mingw-w64-${{ matrix.env }}-openssl | grep '/bin/[^/]\+\.dll$\|/etc/ssl/[^/]\+\.cnf$' | xargs -- tar -cvf openssl.orig.tar -PC / --
+        shell: msys2 {0}
+
+      - name: Install
+        run: find . -name '*.pkg.*' -not -name '*.sig' -print0 | xargs -0 -- pacman -Udd --noconfirm
+        shell: msys2 {0}
+
+      - name: Restore openssl dll/cnf files
+        if: contains(matrix.install, 'openssl-1.1')
+        run: tar -xvf openssl.orig.tar -PC /
+        shell: msys2 {0}
+
+      - name: Archive MSYS2
+        run: |
+          cd "${env:MSYS2_LOCATION}"
+          7z a "${env:GITHUB_WORKSPACE}\msys2-${{ matrix.sys }}${{ matrix.variant }}.7z"
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+
+      - name: Upload MSYS2
+        uses: actions/upload-artifact@v4
+        with:
+          name: msys2-${{ matrix.sys }}${{ matrix.variant }}
+          path: msys2-${{ matrix.sys }}${{ matrix.variant }}.7z
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Create MSYS2 Package List
+        run: pacman -Q | tee msys2-${{ matrix.sys }}${{ matrix.variant }}.packages.txt
+        shell: msys2 {0}
+
+      - name: Upload MSYS2 Package List
+        uses: actions/upload-artifact@v4
+        with:
+          name: msys2-${{ matrix.sys }}${{ matrix.variant }}-packages-txt
+          path: msys2-${{ matrix.sys }}${{ matrix.variant }}.packages.txt
+          if-no-files-found: error
+
+  vcpkg:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            triplet: x64-windows
+          - os: windows-11-arm
+            triplet: arm64-windows
+    steps:
+      - name: Update vcpkg
+        run: |
+          cd "${env:VCPKG_INSTALLATION_ROOT}"
+          git fetch --depth 1 origin HEAD
+          git reset --hard FETCH_HEAD
+          .\bootstrap-vcpkg.bat
+
+      - name: Create vcpkg.json
+        run: |
+          echo @'
+          {
+            "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+            "dependencies": [
+              "gmp",
+              "libyaml",
+              "libffi",
+              "pkgconf",
+              "openssl",
+              "readline-win32",
+              "zlib"
+            ]
+          }
+          '@ | Tee-Object -FilePath vcpkg.json -Encoding UTF8
+
+      - name: Dry Run
+        run: vcpkg install --dry-run | Tee-Object -FilePath vcpkg-install.log -Encoding UTF8
+
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: vcpkg_binary_cache
+          key: ${{ runner.os }}-${{ runner.arch }}-vcpkg-${{ hashFiles('vcpkg-install.log') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-vcpkg-
+
+      - name: Install
+        run: vcpkg install
+        env:
+          VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}\vcpkg_binary_cache,readwrite
+
+      - name: Export
+        run: |
+          vcpkg export --raw --output vcpkg --output-dir=$pwd
+          cd vcpkg
+          7z a ..\vcpkg-${{ matrix.triplet }}.7z installed
+
+      - name: Upload vcpkg Export
+        uses: actions/upload-artifact@v4
+        with:
+          name: vcpkg-${{ matrix.triplet }}
+          path: vcpkg-${{ matrix.triplet }}.7z
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Create vcpkg Package List
+        run: vcpkg list | Tee-Object -FilePath "vcpkg-${{ matrix.triplet }}.packages.txt" -Encoding UTF8
+
+      - name: Upload vcpkg Package List
+        uses: actions/upload-artifact@v4
+        with:
+          name: vcpkg-${{ matrix.triplet }}-packages-txt
+          path: vcpkg-${{ matrix.triplet }}.packages.txt
+          if-no-files-found: error
+
+  test:
+    needs: [msys2, msys2-extra, vcpkg]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            ruby-version: '3.0'
+            sys: mingw64
+            variant: -mingw-w64@r688-gcc@14-openssl@1.1
+          - os: windows-2022
+            ruby-version: '3.1'
+            sys: ucrt64
+            variant: -mingw-w64@r688-gcc@14-openssl@1.1
+          - os: windows-2022
+            ruby-version: '3.2.8'
+            sys: ucrt64
+            variant: -mingw-w64@r688-gcc@14
+          - os: windows-2022
+            ruby-version: head
+            sys: ucrt64
+          - os: windows-11-arm
+            ruby-version: '3.4.3'
+            sys: clangarm64
+            variant: -mingw-w64@r688
+          - os: windows-11-arm
+            ruby-version: head
+            sys: clangarm64
+          - os: windows-2022
+            ruby-version: mswin
+            sys: ucrt64
+            triplet: x64-windows
+            vcvars: vcvars64.bat
+          # - os: windows-11-arm
+          #   ruby-version: mswin
+          #   sys: clangarm64
+          #   triplet: arm64-windows
+          #   vcvars: vcvarsarm64.bat
+    steps:
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler: none
+          windows-toolchain: none
+
+      - name: Download vcpkg
+        if: matrix.ruby-version == 'mswin'
+        uses: actions/download-artifact@v4
+        with:
+          name: vcpkg-${{ matrix.triplet }}
+
+      - name: Install vcpkg
+        if: matrix.ruby-version == 'mswin'
+        run: 7z x vcpkg-${{ matrix.triplet }}.7z "-o${env:VCPKG_INSTALLATION_ROOT}"
+
+      - name: Setup MSVC
+        if: matrix.ruby-version == 'mswin'
+        run: |
+          ruby -r json -e @'
+          vcvars = File.join(`vswhere -latest -property installationPath`.rstrip, "VC/Auxiliary/Build/${{ matrix.vcvars }}").tr(File::SEPARATOR, File::ALT_SEPARATOR)
+          JSON
+            .parse(`"#{vcvars}" >NUL && ruby -r json -e "puts JSON.fast_generate(ENV.to_h)"`)
+            .each do |name, value|
+              if name == "Path"
+                warn "#{name}=#{value}"
+                File.open(ENV["GITHUB_PATH"], "a+") do |file|
+                  value
+                    .gsub("#{File::PATH_SEPARATOR}#{ENV["Path"]}", "")
+                    .split(File::PATH_SEPARATOR)
+                    .reverse_each do |path|
+                      file.puts path
+                    end
+                end
+              elsif ENV[name] != value
+                puts "#{name}=#{value}"
+              end
+            end
+          puts "MAKE=nmake.exe"
+          '@ | Tee-Object -FilePath "${env:GITHUB_ENV}" -Append -Encoding UTF8
+
+      - name: Download MSYS2
+        uses: actions/download-artifact@v4
+        with:
+          name: msys2-${{ matrix.sys }}${{ matrix.variant }}
+
+      - name: Setup MSYS2
+        id: msys2
+        run: |
+          $rubyPrefix = ruby -e 'puts RbConfig::TOPDIR.tr(File::SEPARATOR, File::ALT_SEPARATOR)'
+          7z x msys2-${{ matrix.sys }}${{ matrix.variant }}.7z "-o${env:RUNNER_TEMP}\msys64"
+          New-Item -ItemType Junction -Path "${rubyPrefix}\msys64" -value "${env:RUNNER_TEMP}\msys64"
+          echo "msys2-location=${rubyPrefix}\msys64" | Tee-Object -FilePath "${env:GITHUB_OUTPUT}" -Append -Encoding UTF8
+
+      - name: Setup PATH
+        run: |
+          echo "${env:MSYS2_LOCATION}\usr\bin" | Tee-Object -FilePath "${env:GITHUB_PATH}" -Append -Encoding UTF8
+          echo "${env:MSYS2_LOCATION}\${{ matrix.sys }}\bin" | Tee-Object -FilePath "${env:GITHUB_PATH}" -Append -Encoding UTF8
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+
+      - name: Enable ridk
+        if: matrix.ruby-version != 'mswin'
+        run: |
+          ruby -r json -e @'
+          JSON
+            .parse(`ridk.cmd enable >NUL && ruby -r json -e "puts JSON.fast_generate(ENV.to_h)"`)
+            .each do |name, value|
+              puts "#{name}=#{value}" if name != 'Path' && ENV[name] != value
+            end
+          '@ | Tee-Object -FilePath "${env:GITHUB_ENV}" -Append -Encoding UTF8
+
+      - name: OpenSSL compiled version
+        run: ruby -r openssl -e 'puts OpenSSL::OPENSSL_VERSION'
+
+      - name: OpenSSL loaded version
+        run: ruby -r openssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
+
+      - name: OpenSSL test
+        run: ruby -r open-uri -e 'puts URI.open("https://rubygems.org/") { |f| f.read(1024) }'
+
+      - name: C extension test
+        run: gem install --platform ruby date fiddle openssl psych && ruby -r date -r fiddle -r openssl -r psych -e exit
+
+  changelog:
+    needs: [msys2, msys2-extra, vcpkg]
+    runs-on: ubuntu-latest
+    outputs:
+      diff: ${{ steps.diff.outputs.diff }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - name: Download Latest Release
+        run: |
+          mkdir a
+          cd a
+          gh release download --repo ${{ github.repository }} --pattern '*.packages.txt' || true
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: b
+          pattern: '*-packages-txt'
+          merge-multiple: true
+
+      - name: Diff
+        id: diff
+        run: echo "diff=$(diff -qr a b &>/dev/null && echo false || echo true)" | tee -a "$GITHUB_OUTPUT"
+
+      - name: Changelog
+        id: changelog
+        run: |
+          { echo '``` diff'; diff -rNU0 a b || true; echo '```'; } | tee CHANGELOG.md
+          echo "changelog=$(base64 -w0 <CHANGELOG.md)" | tee -a "$GITHUB_OUTPUT"
+
+  release:
+    needs: [test, changelog]
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && needs.changelog.outputs.diff == 'true' || inputs.force
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            windows-toolchain.json
+          sparse-checkout-cone-mode: false
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Release
+        run: |
+          tag=v$(date +%Y%m%d.%H%M%S)
+          gh release create "$tag" ./* --repo ${{ github.repository }} --draft --notes "$(echo "$CHANGELOG" | base64 -d)"
+          gh release edit "$tag" --repo ${{ github.repository }} --draft=false
+        env:
+          CHANGELOG: ${{ needs.changelog.outputs.changelog }}
+          GH_TOKEN: ${{ github.token }}

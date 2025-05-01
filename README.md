@@ -1,62 +1,35 @@
 # setup-msys2-gcc
 
-### Purpose
+[![Build](https://github.com/ruby/setup-msys2-gcc/actions/workflows/build.yml/badge.svg)](https://github.com/ruby/setup-msys2-gcc/actions/workflows/build.yml)
 
 This repo packages the build tools needed to compile c and c++ source when using Windows
 Rubies with GitHub Actions.
 
-### General
+## Release Assets
 
-Publicly available Windows Rubies are built with the [MSYS2](https://github.com/msys2) system,
-which provides a bash shell, compilers and tools, and various packages.  Windows Rubies 2.4 thru 
-3.0 use the MSYS2 tools refered to as 'mingw64', which compile using legacy Windows libraries.
-Windows Rubies 3.1 and later use 'ucrt64', which use newer Windows libraries.
+The code installs the MSYS2 and vcpkg packages with GitHub Actions.  If any packages have been
+updated since the latest release, it creates a new release and uploads all packages.
 
-Below summarizes the default MSYS2 installations on Actions Windows images:
+See [`windows-toolchain.json`](./windows-toolchain.json).
 
-| Actions<br/>Image  |  MSYS<br/>Base | MSYS<br/>Build Tools | mingw64<br/>gcc & tools | mingw64<br/>packages | ucrt64<br/>gcc & tools | ucrt64<br/>packages |
-|--------------------|:--------------:|:--------------------:|:-----------------------:|:--------------------:|:----------------------:|:-------------------:|
-| **11-arm**         | No  | No  | No  | No  | No  | No |
-| **2022 and later** | Yes | No  | No  | No  | No  | No |
-| **2016, 2019**     | Yes | Yes | Yes | Some | No  | No  |
+## Dependency Pinning
 
-### Notes
+### MSYS2
 
-Eight package files are stored in a GitHub release, and are used by
-[ruby/setup-ruby](https://github.com/ruby/setup-ruby).  They are:
+> [!NOTE]
+> Installed packages are archived in `msys2-*-var-cache-pacman-pkg.7z` in case downgrade is needed.
 
-* **`msys2.7z`** The base msys2 installation on Actions Windows images contains a minimal
-set of bash tools, and no shared build tools.  Code updates the MSYS2 files, and saves only
-updated files to the 7z.  All Ruby Windows x64 releases from version 2.4 and later use these
-tools.
+If a specific version of a dependency is needed:
 
-* **`msys2-arm64.7z`** The base msys2 installation on Actions Windows images contains a minimal
-set of bash tools, and no shared build tools.  Code saves complate base MSYS2 files to the 7z.
-All Ruby Windows arm64 releases from version 3.4 and later use these tools.
+- Upload packages to [msys2-packages](https://github.com/ruby/setup-msys2-gcc/releases/tag/msys2-packages).
+- Update `msys2-extra` matrix job.
+- Update `windows-toolchain.json` if needed.
+- Update [ruby/setup-ruby](https://github.com/ruby/setup-ruby) if needed.
 
-* **`mingw64.7z`** This contains the mingw64 gcc chain and any packages needed to build
-Ruby.  This has OpenSSL 1.1.1 installed, as of 26-Apr-2024, 1.1.1.w.  Normal Ruby Windows
-releases from version 2.4 thru 3.0 use these tools.
+### vcpkg
 
-* **`mingw64-3.0.7z`** This contains the mingw64 gcc chain and any packages needed to build
-Ruby.  The MSYS2 OpenSSL 3.y.z package is installed.  The mingw Ruby master build is the
-only build that uses this.
+If a specific version of a dependency is needed:
 
-* **`ucrt64.7z`** This contains the ucrt64 gcc chain and any packages needed to build
-Ruby.  This has OpenSSL 1.1.1 installed, as of 26-Apr-2024, 1.1.1.w.  Ruby version 3.1 is
-the only release that uses this.
-
-* **`ucrt64-3.0.7z`** This contains the ucrt64 gcc chain and any packages needed to build
-Ruby. The MSYS2 OpenSSL 3.y.z package is installed.  Ruby 3.2, head, & ucrt builds use this.
-
-* **`clangarm64-3.0.7z`** This contains the clangarm64 gcc chain and any packages needed to build
-Ruby. The MSYS2 OpenSSL 3.y.z package is installed.  Ruby 3.4 and head builds on windows arm64
-use this.
-
-* **`mswin.7z`** This contains files needed to compile Windows Ruby mswin builds. It contains
-libffi, libyaml, openssl, readline, and zlib, built with the Microsoft vcpkg system.  This
-contains OpenSSL 3.0.z.
-
-The code installs the packages with [ruby/setup-ruby](https://github.com/ruby/setup-ruby),
-then updates the MSYS2 and vcpkg packages.  If any packages have been updated, it creates
-a new 7z file and updates the package in the release.
+- Update `vcpkg.json` defined in the `vcpkg` matrix job.
+- Update `windows-toolchain.json` if needed.
+- Update [ruby/setup-ruby](https://github.com/ruby/setup-ruby) if needed.

@@ -1,0 +1,86 @@
+[
+  {
+    "name": "msys1-mingw64",
+    "href": "https://github.com/oneclick/rubyinstaller/releases/download/devkit-4.7.2/DevKit-mingw64-64-4.7.2-20130224-1432-sfx.exe",
+    "platform": "x64-mingw32",
+    "required_ruby_version": [
+      ["< 2.4.dev"]
+    ]
+  },
+  {
+    "name": "msys2-clangarm64",
+    "href": "msys2-clangarm64.7z",
+    "platform": "aarch64-mingw-ucrt",
+    "required_ruby_version": [
+      [">= 3.4.4"]
+    ]
+  },
+  {
+    "name": "msys2-clangarm64-mingw-w64@r688",
+    "href": "msys2-clangarm64-mingw-w64@r688.7z",
+    "platform": "aarch64-mingw-ucrt",
+    "required_ruby_version": [
+      [">= 3.4.dev", "< 3.4.4"]
+    ]
+  },
+  {
+    "name": "msys2-ucrt64",
+    "href": "msys2-ucrt64.7z",
+    "platform": "x64-mingw-ucrt",
+    "required_ruby_version": [
+      [">= 3.4.4"],
+      [">= 3.3.9", "< 3.4.dev"],
+      [">= 3.2.9", "< 3.3.dev"]
+    ]
+  },
+  {
+    "name": "msys2-ucrt64-mingw-w64@r688-gcc@14",
+    "href": "msys2-ucrt64-mingw-w64@r688-gcc@14.7z",
+    "platform": "x64-mingw-ucrt",
+    "required_ruby_version": [
+      [">= 3.4.dev", "< 3.4.4"],
+      [">= 3.3.dev", "< 3.3.9"],
+      [">= 3.2.dev", "< 3.2.9"]
+    ]
+  },
+  {
+    "name": "msys2-ucrt64-mingw-w64@r688-gcc@14-openssl@1.1",
+    "href": "msys2-ucrt64-mingw-w64@r688-gcc@14-openssl@1.1.7z",
+    "platform": "x64-mingw-ucrt",
+    "required_ruby_version": [
+      [">= 3.1.dev", "< 3.2.dev"]
+    ]
+  },
+  {
+    "name": "msys2-mingw64",
+    "href": "msys2-mingw64.7z",
+    "platform": "x64-mingw32",
+    "required_ruby_version": [
+      [">= 3.5.dev"]
+    ]
+  },
+  {
+    "name": "msys2-mingw64-mingw-w64@r688-gcc@14-openssl@1.1",
+    "href": "msys2-mingw64-mingw-w64@r688-gcc@14-openssl@1.1.7z",
+    "platform": "x64-mingw32",
+    "required_ruby_version": [
+      [">= 2.4.dev", "< 3.1.dev"]
+    ]
+  },
+  {
+    "name": "vcpkg-arm64-windows",
+    "href": "vcpkg-arm64-windows.7z",
+    "platform": "aarch64-mswin64",
+    "required_ruby_version": [
+      [">= 3.5.dev"]
+    ]
+  },
+  {
+    "name": "vcpkg-x64-windows",
+    "href": "vcpkg-x64-windows.7z",
+    "platform": "x64-mswin64",
+    "required_ruby_version": [
+      [">= 2.0.dev"]
+    ]
+  }
+]
