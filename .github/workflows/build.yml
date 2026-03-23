@@ -72,7 +72,7 @@ jobs:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
 
       - name: Upload MSYS2
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: msys2-${{ matrix.sys }}
           path: msys2-${{ matrix.sys }}.7z
@@ -91,7 +91,7 @@ jobs:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
 
       - name: Upload MSYS2 Package Cache
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: msys2-${{ matrix.sys }}-var-cache-pacman-pkg
           path: msys2-${{ matrix.sys }}-var-cache-pacman-pkg.7z
@@ -103,7 +103,7 @@ jobs:
         shell: msys2 {0}
 
       - name: Upload MSYS2 Package List
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: msys2-${{ matrix.sys }}-packages-txt
           path: msys2-${{ matrix.sys }}.packages.txt
@@ -232,7 +232,7 @@ jobs:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
 
       - name: Upload MSYS2
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: msys2-${{ matrix.sys }}${{ matrix.variant }}
           path: msys2-${{ matrix.sys }}${{ matrix.variant }}.7z
@@ -244,7 +244,7 @@ jobs:
         shell: msys2 {0}
 
       - name: Upload MSYS2 Package List
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: msys2-${{ matrix.sys }}${{ matrix.variant }}-packages-txt
           path: msys2-${{ matrix.sys }}${{ matrix.variant }}.packages.txt
@@ -308,7 +308,7 @@ jobs:
           7z a ..\vcpkg-${{ matrix.triplet }}.7z installed
 
       - name: Upload vcpkg Export
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: vcpkg-${{ matrix.triplet }}
           path: vcpkg-${{ matrix.triplet }}.7z
@@ -319,7 +319,7 @@ jobs:
         run: vcpkg list | Tee-Object -FilePath "vcpkg-${{ matrix.triplet }}.packages.txt" -Encoding UTF8
 
       - name: Upload vcpkg Package List
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: vcpkg-${{ matrix.triplet }}-packages-txt
           path: vcpkg-${{ matrix.triplet }}.packages.txt
