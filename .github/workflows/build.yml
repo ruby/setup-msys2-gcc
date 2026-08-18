@@ -388,7 +388,7 @@ jobs:
           ruby -r json -e @'
           vcvars = File.join(`vswhere -latest -property installationPath`.rstrip, "VC/Auxiliary/Build/${{ matrix.vcvars }}").tr(File::SEPARATOR, File::ALT_SEPARATOR)
           JSON
-            .parse(`"#{vcvars}" >NUL && ruby -r json -e "puts JSON.fast_generate(ENV.to_h)"`)
+            .parse(`"#{vcvars}" >NUL && ruby -r json -e "puts JSON.generate(ENV.to_h)"`)
             .each do |name, value|
               if name == "Path"
                 warn "#{name}=#{value}"
@@ -432,7 +432,7 @@ jobs:
         run: |
           ruby -r json -e @'
           JSON
-            .parse(`ridk.cmd enable >NUL && ruby -r json -e "puts JSON.fast_generate(ENV.to_h)"`)
+            .parse(`ridk.cmd enable >NUL && ruby -r json -e "puts JSON.generate(ENV.to_h)"`)
             .each do |name, value|
               puts "#{name}=#{value}" if name != 'Path' && ENV[name] != value
             end
