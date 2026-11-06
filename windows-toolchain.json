@@ -53,7 +53,7 @@
   },
   {
     "name": "msys2-mingw64",
-    "href": "msys2-mingw64.7z",
+    "href": "https://github.com/ruby/setup-msys2-gcc/releases/download/v20261024.010459/msys2-mingw64.7z",
     "platform": "x64-mingw32",
     "required_ruby_version": [
       [">= 3.5.dev"]
@@ -61,7 +61,7 @@
   },
   {
     "name": "msys2-mingw64-mingw-w64@r688-gcc@14-openssl@1.1",
-    "href": "msys2-mingw64-mingw-w64@r688-gcc@14-openssl@1.1.7z",
+    "href": "https://github.com/ruby/setup-msys2-gcc/releases/download/v20261024.010459/msys2-mingw64-mingw-w64@r688-gcc@14-openssl@1.1.7z",
     "platform": "x64-mingw32",
     "required_ruby_version": [
       [">= 2.4.dev", "< 3.1.dev"]

@@ -19,9 +19,6 @@ jobs:
       matrix:
         include:
           - os: windows-2022
-            sys: mingw64
-            env: x86_64
-          - os: windows-2022
             sys: ucrt64
             env: ucrt-x86_64
           - os: windows-11-arm
@@ -116,20 +113,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2022
-            sys: mingw64
-            env: x86_64
-            variant: -mingw-w64@r688-gcc@14-openssl@1.1
-            install: >-
-              crt-git-12.0.0.r688.g6b2176247-1
-              headers-git-12.0.0.r688.g6b2176247-1
-              libmangle-git-12.0.0.r688.g6b2176247-1
-              libwinpthread-git-12.0.0.r688.g6b2176247-1
-              tools-git-12.0.0.r688.g6b2176247-1
-              winpthreads-git-12.0.0.r688.g6b2176247-1
-              gcc-14.2.0-3
-              gcc-libs-14.2.0-3
-              openssl-1.1.1.w-1
           - os: windows-2022
             sys: ucrt64
             env: ucrt-x86_64
@@ -332,10 +315,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-2022
-            ruby-version: '3.0'
-            sys: mingw64
-            variant: -mingw-w64@r688-gcc@14-openssl@1.1
           - os: windows-2022
             ruby-version: '3.1'
             sys: ucrt64
