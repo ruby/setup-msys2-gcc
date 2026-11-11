@@ -70,7 +70,7 @@
   {
     "name": "vcpkg-arm64-windows",
     "href": "vcpkg-arm64-windows.7z",
-    "platform": "aarch64-mswin64",
+    "platform": "arm64-mswin64",
     "required_ruby_version": [
       [">= 3.4.dev"]
     ]
