@@ -258,11 +258,10 @@ jobs:
             "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
             "dependencies": [
               "gmp",
-              "libyaml",
               "libffi",
-              "pkgconf",
+              "libyaml",
               "openssl",
-              "readline-win32",
+              "pkgconf",
               "zlib"
             ]
           }
