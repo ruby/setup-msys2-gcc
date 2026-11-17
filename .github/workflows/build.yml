@@ -386,6 +386,7 @@ jobs:
           '@ | Tee-Object -FilePath "${env:GITHUB_ENV}" -Append -Encoding UTF8
 
       - name: Setup vcpkg
+        if: matrix.ruby-version == 'mswin'
         run: |
           echo @"
           INCLUDE=${env:VCPKG_INSTALLATION_ROOT}\installed\${{ matrix.triplet }}\include;${env:INCLUDE}
