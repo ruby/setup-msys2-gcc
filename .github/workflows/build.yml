@@ -385,6 +385,15 @@ jobs:
           puts "MAKE=nmake.exe"
           '@ | Tee-Object -FilePath "${env:GITHUB_ENV}" -Append -Encoding UTF8
 
+      - name: Setup vcpkg
+        run: |
+          echo @"
+          INCLUDE=${env:VCPKG_INSTALLATION_ROOT}\installed\${{ matrix.triplet }}\include;${env:INCLUDE}
+          LIB=${env:VCPKG_INSTALLATION_ROOT}\installed\${{ matrix.triplet }}\lib;${env:LIB}
+          PKG_CONFIG=${env:VCPKG_INSTALLATION_ROOT}\installed\${{ matrix.triplet }}\tools\pkgconf\pkgconf.exe
+          PKG_CONFIG_PATH=${env:VCPKG_INSTALLATION_ROOT}\installed\${{ matrix.triplet }}\lib\pkgconfig
+          "@ | Tee-Object -FilePath "${env:GITHUB_ENV}" -Append -Encoding UTF8
+
       - name: Download MSYS2
         uses: actions/download-artifact@v8
         with:
