@@ -337,11 +337,11 @@ jobs:
             sys: ucrt64
             triplet: x64-windows
             vcvars: vcvars64.bat
-          # - os: windows-11-arm
-          #   ruby-version: mswin
-          #   sys: clangarm64
-          #   triplet: arm64-windows
-          #   vcvars: vcvarsarm64.bat
+          - os: windows-11-arm
+            ruby-version: mswin
+            sys: clangarm64
+            triplet: arm64-windows
+            vcvars: vcvarsarm64.bat
     steps:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -384,6 +384,16 @@ jobs:
             end
           puts "MAKE=nmake.exe"
           '@ | Tee-Object -FilePath "${env:GITHUB_ENV}" -Append -Encoding UTF8
+
+      - name: Setup vcpkg
+        if: matrix.ruby-version == 'mswin'
+        run: |
+          echo @"
+          INCLUDE=${env:VCPKG_INSTALLATION_ROOT}\installed\${{ matrix.triplet }}\include;${env:INCLUDE}
+          LIB=${env:VCPKG_INSTALLATION_ROOT}\installed\${{ matrix.triplet }}\lib;${env:LIB}
+          PKG_CONFIG=${env:VCPKG_INSTALLATION_ROOT}\installed\${{ matrix.triplet }}\tools\pkgconf\pkgconf.exe
+          PKG_CONFIG_PATH=${env:VCPKG_INSTALLATION_ROOT}\installed\${{ matrix.triplet }}\lib\pkgconfig
+          "@ | Tee-Object -FilePath "${env:GITHUB_ENV}" -Append -Encoding UTF8
 
       - name: Download MSYS2
         uses: actions/download-artifact@v8
